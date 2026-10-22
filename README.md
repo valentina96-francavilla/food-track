@@ -29,6 +29,6 @@ Prima di usare dati reali sono ancora necessari: revisione e test delle policy, 
 
 La demo statica su GitHub Pages non richiede una prova a scadenza. Un backend multiutente gratuito, però, ha quote e possibili pause per inattività: **zero costi non significa servizio garantito senza limiti o sempre attivo**. Non attivare piani a pagamento, fatturazione automatica o upgrade per far funzionare FoodTrack. Prima di creare il backend va verificato che il progetto sia a costo zero; non utilizzare un servizio che richieda carta, prova temporanea o upgrade automatico.
 
-## Pubblicazione
+## Pubblicazione e uso consentito
 
-Il workflow `.github/workflows/pages.yml` pubblica il contenuto del repository su GitHub Pages a ogni push su `main`.
+Il workflow `.github/workflows/pages.yml` pubblica il prototipo portfolio su GitHub Pages a ogni push su `main`. GitHub Pages non è adatto a ospitare un servizio commerciale SaaS o un portale che facilita transazioni commerciali: per un eventuale uso reale andrà scelta una piattaforma di hosting compatibile con tale uso e con il vincolo economico.
