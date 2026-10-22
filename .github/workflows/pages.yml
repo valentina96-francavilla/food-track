@@ -25,7 +25,7 @@ jobs:
           from pathlib import Path
           import re
           html = Path("index.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script\\b[^>]*>(.*?)</script>", html, flags=re.S | re.I)
+          scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", html, flags=re.S | re.I)
           assert scripts, "No inline JavaScript found"
           Path("/tmp/foodtrack-inline.js").write_text(scripts[-1], encoding="utf-8")
           for marker in ("setupNav();", "renderAll()", "localStorage"):
