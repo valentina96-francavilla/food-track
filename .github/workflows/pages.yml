@@ -19,6 +19,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Smoke test inline JavaScript and required UI hooks
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script\\b[^>]*>(.*?)</script>", html, flags=re.S | re.I)
+          assert scripts, "No inline JavaScript found"
+          Path("/tmp/foodtrack-inline.js").write_text(scripts[-1], encoding="utf-8")
+          for marker in ("setupNav();", "renderAll()", "localStorage"):
+              assert marker in html, f"Missing expected demo marker: {marker}"
+          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters")
+          PY
+          node --check /tmp/foodtrack-inline.js
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
