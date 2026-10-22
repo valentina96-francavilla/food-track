@@ -1,24 +1,34 @@
-# FoodTrack — prototipo B2B
+# FoodTrack
 
-Demo interattiva di un portale ordini per distribuzione alimentare, con tre viste di ruolo selezionabili: **Admin**, **Fornitore** e **Gastronomo**.
+Portale B2B per ordini alimentari: catalogo fornitori, listini riservati, gastronomi, ordini e gestione per ruolo.
 
-## Funzionalità prototipate
-- **Gastronomo:** catalogo assegnato, ricerca per nome/codice, categorie, disponibilità, preferiti, carrello persistente nel browser, selezione data consegna, referente, note, riepilogo e invio ordine simulato, storico e riordino.
-- **Fornitore:** gestione del proprio catalogo, attivazione/disattivazione prodotti, formato e quantità minima, etichetta, listini cliente e gestione dello stato degli ordini.
-- **Admin:** panoramica, prodotti di tutti i fornitori, listini per gastronomo, gestione fornitori, gastronomi e collegamenti tra clienti e fornitori, ordini.
-- **Ordini:** numero univoco demo, data/ora invio, data richiesta, referenza di consegna, formati e confezioni, totale, stato e timestamp della ricezione.
-- Layout responsive desktop/mobile.
+## Stato attuale
 
-## Prova la demo
-Apri [FoodTrack su GitHub Pages](https://valentina96-francavilla.github.io/food-track/) oppure visita il file [index.html](https://github.com/valentina96-francavilla/food-track/blob/main/index.html).
+**Demo frontend pubblicata:** https://valentina96-francavilla.github.io/food-track/
 
-## Limiti importanti
-Questo è un **prototipo frontend**, non un sistema pronto per ordini reali:
-- Il selettore dei ruoli simula le schermate, ma non è autenticazione e non applica sicurezza reale.
-- I dati sono esempi; le modifiche si salvano nel `localStorage` del browser, non su un database condiviso.
-- Non vengono spedite email, inviti o reset password.
-- Il caricamento immagini reale, la gestione completa di più formati per prodotto, le notifiche e la sincronizzazione multiutente devono essere completati.
-- Il workflow commerciale e le regole di annullamento devono essere validati prima della produzione.
+Il sito attuale è un prototipo HTML/CSS/JavaScript. Le schermate e le interazioni sono demo; il selettore di ruolo non è autenticazione. I dati attuali sono esempi e vengono salvati nel browser con `localStorage`: non sono condivisi tra utenti e non devono essere usati per gestire ordini commerciali reali.
 
-## Prossima fase tecnica
-Collegare un backend reale (ad esempio Supabase/PostgreSQL) con autenticazione, autorizzazioni server-side per ruolo e relazione fornitore-cliente, storage immagini, listini cliente/formato, righe d'ordine con snapshot di prezzo, transizioni di stato validate, notifiche email e log delle modifiche. Non usare dati reali o credenziali reali nella demo.
+## Obiettivo della prossima versione
+
+- Autenticazione reale e ruoli assegnati lato server.
+- Organizzazioni separate per gastronomi e fornitori.
+- Catalogo e prezzi cliente-specifici.
+- Ordini condivisi, con snapshot di prodotto e prezzo.
+- Autorizzazioni a livello database tramite PostgreSQL Row Level Security (RLS).
+- Dati reali solo dopo aver collegato un progetto backend dedicato e aver verificato le regole di accesso.
+
+## Backend preparato
+
+La prima bozza dello schema è in `supabase/migrations/20261022000000_initial_schema.sql`. Definisce organizzazioni, membership, collegamenti cliente-fornitore, prodotti, prezzi, ordini, righe d'ordine e preferiti con policy RLS iniziali.
+
+**Questa migrazione non è stata applicata a un database.** Non esiste ancora un progetto Supabase dedicato a FoodTrack collegato al frontend. Il progetto Supabase già presente nell'account si chiama Lookera e non va riutilizzato: separare i dati evita di mescolare due prodotti.
+
+Prima di usare dati reali sono ancora necessari: revisione e test delle policy, flusso sicuro di invito/membership, validazione server-side di prezzi e totali, transizioni di stato consentite, e collegamento del frontend all'API. La bozza SQL è una base di lavoro, non una certificazione di sicurezza.
+
+## Vincolo economico
+
+La demo statica su GitHub Pages non richiede una prova a scadenza. Un backend multiutente gratuito, però, ha quote e possibili pause per inattività: **zero costi non significa servizio garantito senza limiti o sempre attivo**. Non attivare piani a pagamento, fatturazione automatica o upgrade per far funzionare FoodTrack. Prima di creare il backend va verificato che il progetto sia a costo zero; non utilizzare un servizio che richieda carta, prova temporanea o upgrade automatico.
+
+## Pubblicazione
+
+Il workflow `.github/workflows/pages.yml` pubblica il contenuto del repository su GitHub Pages a ogni push su `main`.
