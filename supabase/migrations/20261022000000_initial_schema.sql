@@ -122,13 +122,9 @@ using (exists (
   where m.organization_id = organizations.id and m.user_id = (select auth.uid())
 ));
 
-create policy "members can read memberships in their organizations"
+create policy "users can read their own memberships"
 on public.memberships for select to authenticated
-using (exists (
-  select 1 from public.memberships mine
-  where mine.organization_id = memberships.organization_id
-    and mine.user_id = (select auth.uid())
-));
+using (user_id = (select auth.uid()));
 
 create policy "linked customers and suppliers can read their link"
 on public.customer_suppliers for select to authenticated
