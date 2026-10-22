@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 370" width="100%" height="100%">
+  <!-- Background Color -->
+  <rect width="1000" height="370" fill="#F4F6F0" />
+  <!-- Icon Badge (Squircle) -->
+  <rect x="195" y="90" width="160" height="160" rx="45" ry="45" fill="#D2F165" />
+  <!-- Icon Graphic: The 'f' + arrow path -->
+  <path d="M 275,225 C 255,225 240,210 240,190 C 240,170 260,165 275,160 C 290,155 310,150 310,130 C 310,115 300,105 285,105 C 270,105 260,115 258,125" fill="none" stroke="#112211" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 310,130 L 310,110 M 310,130 L 290,130" fill="none" stroke="#112211" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+  <line x1="395" y1="90" x2="395" y2="250" stroke="#112211" stroke-width="1" opacity="0.3" />
+  <text x="425" y="190" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="76" font-weight="800" fill="#112211" letter-spacing="-2">foodtrack<tspan fill="#245137">.</tspan></text>
+  <text x="427" y="235" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="700" fill="#112211" letter-spacing="0.5">GESTIONE ORDINI E PRODOTTI</text>
+</svg>
