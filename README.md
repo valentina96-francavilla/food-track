@@ -1,34 +1,35 @@
 # FoodTrack
 
-Portale B2B per ordini alimentari: catalogo fornitori, listini riservati, gastronomi, ordini e gestione per ruolo.
+Portale B2B per ordini alimentari: catalogo fornitori, listini, gastronomie, ordini e gestione per ruolo.
 
-## Stato attuale
+## Link
+- Landing page dimostrativa: https://valentina96-francavilla.github.io/food-track/landing.html
+- Portale: https://valentina96-francavilla.github.io/food-track/
 
-**Demo frontend pubblicata:** https://valentina96-francavilla.github.io/food-track/
+## Architettura attuale
+- Frontend statico HTML/CSS/JavaScript pubblicato tramite GitHub Pages.
+- Autenticazione Supabase Auth collegata al progetto FoodTrack (ID: itzdbziwfwnhqbnhlczy).
+- Database PostgreSQL con organizzazioni, membership, relazioni gastronomia-fornitore, prodotti, prezzi cliente-specifici, ordini e righe d'ordine.
+- Row Level Security (RLS) attiva sulle tabelle applicative.
+- Storage immagini catalogo: bucket foodtrack-product-images. Immagini pubbliche in lettura; upload, modifica ed eliminazione riservati a fornitori autorizzati o amministratore della piattaforma. Il percorso deve iniziare con l'UUID dell'organizzazione fornitrice, per esempio <supplier-organization-uuid>/filename.webp.
 
-Il sito attuale è un prototipo HTML/CSS/JavaScript. Le schermate e le interazioni sono demo; il selettore di ruolo non è autenticazione. I dati attuali sono esempi e vengono salvati nel browser con `localStorage`: non sono condivisi tra utenti e non devono essere usati per gestire ordini commerciali reali.
+## Decisione sui pagamenti
+FoodTrack gestisce la raccolta e lo stato degli ordini. Non gestisce pagamenti online: il pagamento viene concordato e svolto esternamente tra le aziende.
 
-## Obiettivo della prossima versione
+## Stato e limiti
+L'autenticazione e il database sono collegati, ma questo non dimostra che tutte le schermate operative usino già dati reali. Catalogo, carrello, prezzi, ordini, preferiti e gestione delle aziende devono essere verificati uno per uno: nel frontend possono ancora esserci dati demo o salvataggi locali. Non usare il portale per ordini commerciali reali finché non è stato completato il test end-to-end con account distinti.
 
-- Autenticazione reale e ruoli assegnati lato server.
-- Organizzazioni separate per gastronomi e fornitori.
-- Catalogo e prezzi cliente-specifici.
-- Ordini condivisi, con snapshot di prodotto e prezzo.
-- Autorizzazioni a livello database tramite PostgreSQL Row Level Security (RLS).
-- Dati reali solo dopo aver collegato un progetto backend dedicato e aver verificato le regole di accesso.
+## Prossime priorità
+1. Collegare catalogo e immagini reali al database/storage.
+2. Implementare creazione ordini e righe d'ordine con validazione server-side di prezzi e totali.
+3. Completare la gestione degli stati consentiti e le notifiche email.
+4. Verificare permessi RLS con account admin, fornitore e gastronomia separati.
+5. Aggiungere ricerca, filtri, gestione disponibilità e UX responsive.
+6. Testare errori, duplicati, annullamenti, date di consegna e isolamento tra aziende.
+7. Scegliere hosting adatto a un servizio commerciale prima di un lancio nazionale. GitHub Pages è usato qui per la demo frontend, non va considerato automaticamente un hosting SaaS di produzione.
 
-## Backend preparato
+## Migrazioni
+- supabase/migrations/20261022000000_initial_schema.sql
+- supabase/migrations/20261023_foodtrack_product_image_storage.sql
 
-La prima bozza dello schema è in `supabase/migrations/20261022000000_initial_schema.sql`. Definisce organizzazioni, membership, collegamenti cliente-fornitore, prodotti, prezzi, ordini, righe d'ordine e preferiti con policy RLS iniziali.
-
-**Questa migrazione non è stata applicata a un database.** Non esiste ancora un progetto Supabase dedicato a FoodTrack collegato al frontend. Il progetto Supabase già presente nell'account si chiama Lookera e non va riutilizzato: separare i dati evita di mescolare due prodotti.
-
-Prima di usare dati reali sono ancora necessari: revisione e test delle policy, flusso sicuro di invito/membership, validazione server-side di prezzi e totali, transizioni di stato consentite, e collegamento del frontend all'API. La bozza SQL è una base di lavoro, non una certificazione di sicurezza.
-
-## Vincolo economico
-
-La demo statica su GitHub Pages non richiede una prova a scadenza. Un backend multiutente gratuito, però, ha quote e possibili pause per inattività: **zero costi non significa servizio garantito senza limiti o sempre attivo**. Non attivare piani a pagamento, fatturazione automatica o upgrade per far funzionare FoodTrack. Prima di creare il backend va verificato che il progetto sia a costo zero; non utilizzare un servizio che richieda carta, prova temporanea o upgrade automatico.
-
-## Pubblicazione e uso consentito
-
-Il workflow `.github/workflows/pages.yml` pubblica il prototipo portfolio su GitHub Pages a ogni push su `main`. GitHub Pages non è adatto a ospitare un servizio commerciale SaaS o un portale che facilita transazioni commerciali: per un eventuale uso reale andrà scelta una piattaforma di hosting compatibile con tale uso e con il vincolo economico.
+Le migrazioni descrivono modifiche allo schema; la loro presenza nel repository non sostituisce test di sicurezza e collaudo applicativo.
