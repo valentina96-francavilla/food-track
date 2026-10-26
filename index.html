@@ -50,7 +50,7 @@ async function loadFoodTrackData(){
  const activeLinks=links.filter(x=>x.active);
  suppliers=orgs.filter(o=>o.kind==='supplier').map(o=>({id:o.id,name:o.name,contact:'',email:o.email||'',active:true}));
  customers=orgs.filter(o=>o.kind==='customer').map(o=>{const supplierIds=activeLinks.filter(x=>x.customer_organization_id===o.id).map(x=>x.supplier_organization_id);return {id:o.id,name:o.name,city:'',email:o.email||'',supplier:orgById[supplierIds[0]]?.name||'',supplierIds,active:true}});
- if(role==='gastronomo'&&activeSession){const own=customers.find(c=>c.id===((await authClient.from('memberships').select('organization_id').eq('user_id',activeSession.user.id).eq('role','customer')).data||[])[0]?.organization_id);if(own)currentCustomer=own.name;}
+ if(role==='gastronomo'&&activeSession){const {data:customerMemberships}=await authClient.from('memberships').select('organization_id').eq('user_id',activeSession.user.id).eq('role','customer');const own=customers.find(c=>c.id===(customerMemberships||[])[0]?.organization_id);if(own)currentCustomer=own.name;}
  if(role==='fornitore'&&activeSession){const own=suppliers.find(x=>x.name===currentSupplier);if(!own){const {data:m}=await authClient.from('memberships').select('organization_id').eq('user_id',activeSession.user.id).eq('role','supplier').maybeSingle();if(m?.organization_id&&orgById[m.organization_id])currentSupplier=orgById[m.organization_id].name;}}
  const pricesByCustomerProduct={};
  for(const pr of rawPrices){const customer=orgById[pr.customer_organization_id];if(customer)pricesByCustomerProduct[customer.name+'|'+pr.product_id]=Number(pr.price);}
