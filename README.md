@@ -26,7 +26,7 @@ I dati e i prezzi sono fittizi e servono per testare il flusso. Le organizzazion
 ## Stato e limiti
 Il catalogo, i listini e la creazione degli ordini sono collegati al database. È stata verificata la sintassi JavaScript e la presenza dei dati nel database, ma non è ancora stato eseguito un test end-to-end da browser con account distinti. Non usare il portale per ordini commerciali reali finché non sono stati verificati login, checkout, lettura degli ordini da parte del fornitore e isolamento dei dati.
 
-La gestione dei prodotti e dei listini da tutte le schermate amministrative/fornitore deve ancora essere collegata in modo completo alle scritture del database; alcune azioni della UI possono ancora essere locali. Le immagini sono predisposte nello storage, ma l'upload dal modulo prodotto non è ancora collegato.
+La creazione/modifica/attivazione dei prodotti, i prezzi personalizzati per gastronomia e gli aggiornamenti di stato/annullamento degli ordini sono collegati alle scritture del database. Carrello e preferiti restano locali al browser. La modifica delle anagrafiche esistenti e di alcuni collegamenti commerciali richiede ancora il completamento delle scritture persistenti. Le immagini sono predisposte nello storage, ma l'upload dal modulo prodotto non è ancora collegato.
 
 ## Prossime priorità
 1. Testare checkout con account admin e account gastronomia reale.
@@ -41,5 +41,7 @@ La gestione dei prodotti e dei listini da tutte le schermate amministrative/forn
 - supabase/migrations/20261022000000_initial_schema.sql
 - supabase/migrations/20261023_foodtrack_product_image_storage.sql
 - supabase/migrations/20261026_foodtrack_seed_catalog_and_checkout.sql
+- supabase/migrations/20261026191901_foodtrack_admin_product_price_order_permissions.sql
+- supabase/migrations/20261026192000_foodtrack_restrict_admin_helper_execution.sql
 
 Le migrazioni documentano il database; non sostituiscono test applicativi e verifiche di sicurezza.
