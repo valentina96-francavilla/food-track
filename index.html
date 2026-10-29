@@ -39,7 +39,7 @@ async function loadFoodTrackData(){
  const [orgRes,linkRes,productRes,priceRes,orderRes,itemRes]=await Promise.all([
   authClient.from('organizations').select('id,name,kind,email,phone'),
   authClient.from('customer_suppliers').select('customer_organization_id,supplier_organization_id,active'),
-  authClient.from('products').select('id,supplier_organization_id,sku,name,description,category,unit_label,pack_size,min_quantity,image_url,active').order('name'),
+  authClient.from('products').select('id,supplier_organization_id,sku,name,description,category,unit_label,pack_size,min_quantity,image_url,active,tag,discount_percent,full_price').order('name'),
   authClient.from('customer_product_prices').select('customer_organization_id,product_id,price,min_quantity,currency'),
   authClient.from('orders').select('*').order('submitted_at',{ascending:false}).limit(100),
   authClient.from('order_items').select('*')
@@ -61,8 +61,16 @@ async function loadFoodTrackData(){
   const currentPrice=Number(prices[currentCustomer+'|'+p.id]??relatedPrices[0]?.price??0);
   const category=p.category||'Altro';
   const emoji=category==='Fritti'?'🍽️':category==='Pizza'?'🍕':category==='Snack'?'🧀':category==='Dolci'?'🍰':'📦';
-  return {id:p.id,dbId:p.id,code:p.sku,name:p.name,description:p.description||'',cat:category,emoji,supplier:supplier?.name||'Fornitore',supplierId:p.supplier_organization_id,tag:'',active:p.active, image_url:p.image_url,formats:[{id:p.id,name:p.unit_label||'confezione',units:Number(p.pack_size||1),min:Math.max(Number(p.min_quantity||1),Number(rawPrices.find(pr=>pr.product_id===p.id&&pr.customer_organization_id===customers.find(c=>c.name===currentCustomer)?.id)?.min_quantity||1)),base:currentPrice}]};
+  return {id:p.id,dbId:p.id,code:p.sku,name:p.name,description:p.description||'',cat:category,emoji,supplier:supplier?.name||'Fornitore',supplierId:p.supplier_organization_id,tag:p.tag||'',discount_percent:p.discount_percent==null?null:Number(p.discount_percent),full_price:p.full_price==null?null:Number(p.full_price),active:p.active, image_url:p.image_url,formats:[{id:p.id,name:p.unit_label||'confezione',units:Number(p.pack_size||1),min:Math.max(Number(p.min_quantity||1),Number(rawPrices.find(pr=>pr.product_id===p.id&&pr.customer_organization_id===customers.find(c=>c.name===currentCustomer)?.id)?.min_quantity||1)),base:currentPrice}]};
  });
+ if(role==='gastronomo'&&activeSession){
+  const customer=customers.find(x=>x.name===currentCustomer);
+  if(customer?.id){
+   const favRes=await authClient.from('customer_favorites').select('product_id').eq('customer_organization_id',customer.id);
+   if(favRes.error)throw favRes.error;
+   favorites=(favRes.data||[]).map(x=>x.product_id);
+  }else favorites=[];
+ }else favorites=[];
  const itemRows=itemRes.data||[];
  const statusMap={draft:'Bozza',submitted:'Ordine inviato',accepted:'Confermato',preparing:'In preparazione',shipped:'Spedito',delivered:'Consegnato',cancelled:'Annullato'};
  orders=(orderRes.data||[]).map(o=>{
@@ -103,7 +111,7 @@ const defaultOrders=[
 function load(key,fallback){try{const x=localStorage.getItem('foodtrack_'+key);return x?JSON.parse(x):fallback}catch(e){return fallback}}
 let products=seedProducts,customers=seedCustomers,suppliers=seedSuppliers,orders=[],prices={};
 let role='gastronomo',currentCustomer='Gastronomia Milano',currentSupplier='Fornitore Nord',cat='Tutti',favorites=load('favorites',[]),cart=load('cart',{}),editingProduct=null;
-function persist(){localStorage.setItem('foodtrack_favorites',JSON.stringify(favorites));localStorage.setItem('foodtrack_cart',JSON.stringify(cart))}
+function persist(){localStorage.setItem('foodtrack_cart',JSON.stringify(cart))}
 function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');clearTimeout(window._toast);window._toast=setTimeout(()=>t.classList.remove('show'),2600)}
 function getPrice(p,f,customer=currentCustomer){return Number(prices[customer+'|'+f.id]??f.base)}
 function getP(id){return products.find(p=>String(p.id)===String(id))}
@@ -119,7 +127,12 @@ function renderCategories(){let cats=['Tutti',...new Set(visibleProducts().map(p
 function setCat(c){cat=c;renderCatalog()}
 function card(p){
  const f=p.formats[0],price=getPrice(p,f),fav=favorites.includes(p.id),pid=String(p.id);
- return '<article class="product"><div class="pic">'+p.emoji+(p.tag?'<span class="tag">'+p.tag+'</span>':'')+(role==='gastronomo'?'<button class="heart" title="Preferito" onclick="toggleFav(\''+pid+'\')">'+(fav?'♥':'♡')+'</button>':'')+'</div><div class="pbody"><div class="sku">'+p.code+' · '+p.cat+'</div><h3>'+p.name+'</h3><div class="pack">'+p.supplier+' · '+(p.active?'Disponibile':'Non disponibile')+'</div>'+((role==='gastronomo'||role==='admin')?'<label class="muted" style="display:block;font-size:10px;margin-top:7px">Formato ordine</label><select class="field" id="format-'+pid+'" onchange="cardFormatChange(\''+pid+'\')" style="padding:7px;font-size:11px">'+p.formats.map(x=>'<option value="'+x.id+'">'+x.name+' · '+x.units+' pezzi</option>').join('')+'</select><div class="price" id="price-'+pid+'">'+fmt(price)+' <small>/ '+f.name+'</small></div><div class="pack" id="formatinfo-'+pid+'">Minimo: '+f.min+' confezioni · '+f.units+' pezzi per confezione</div><div class="addrow" style="margin-top:8px"><input class="qty" id="qty-'+pid+'" type="number" min="'+f.min+'" value="'+f.min+'"><button class="add" '+(!p.active?'disabled':'')+' onclick="addToCart(\''+pid+'\',document.getElementById(\'format-'+pid+'\').value)">＋ Aggiungi</button></div>':'<div class="pack">'+p.formats.map(x=>x.name+' · '+x.units+' pezzi (min '+x.min+')').join('<br>')+'</div><div class="price">'+fmt(price)+' <small>/ '+f.name+'</small></div><div class="muted" style="font-size:11px">Minimo ordine: '+f.min+' confezioni</div>')+'</div></article>';
+ const badge=p.tag?'<span class="tag">'+p.tag+'</span>':'';
+ const discount=(p.tag==='Sconto'&&p.discount_percent&&p.full_price!=null)
+  ?'<div class="price"><span style="text-decoration:line-through;color:var(--muted);font-size:12px;font-weight:500">'+fmt(p.full_price)+'</span> <b>'+fmt(price)+'</b> <span class="badge">-'+Number(p.discount_percent)+'%</span></div>'
+  :'';
+ const normalPrice=discount?'':('<div class="price" id="price-'+pid+'">'+fmt(price)+' <small>/ '+f.name+'</small></div>');
+ return '<article class="product"><div class="pic">'+p.emoji+badge+(role==='gastronomo'?'<button class="heart" title="Preferito" onclick="toggleFav(\''+pid+'\')">'+(fav?'♥':'♡')+'</button>':'')+'</div><div class="pbody"><div class="sku">'+p.code+' · '+p.cat+'</div><h3>'+p.name+'</h3><div class="pack">'+p.supplier+' · '+(p.active?'Disponibile':'Non disponibile')+'</div>'+((role==='gastronomo'||role==='admin')?'<label class="muted" style="display:block;font-size:10px;margin-top:7px">Formato ordine</label><select class="field" id="format-'+pid+'" onchange="cardFormatChange(\''+pid+'\')" style="padding:7px;font-size:11px">'+p.formats.map(x=>'<option value="'+x.id+'">'+x.name+' · '+x.units+' pezzi</option>').join('')+'</select>'+(discount||normalPrice)+'<div class="pack" id="formatinfo-'+pid+'">Minimo: '+f.min+' confezioni · '+f.units+' pezzi per confezione</div><div class="addrow" style="margin-top:8px"><input class="qty" id="qty-'+pid+'" type="number" min="'+f.min+'" value="'+f.min+'"><button class="add" '+(!p.active?'disabled':'')+' onclick="addToCart(\''+pid+'\',document.getElementById(\'format-'+pid+'\').value)">＋ Aggiungi</button></div>':'<div class="pack">'+p.formats.map(x=>x.name+' · '+x.units+' pezzi (min '+x.min+')').join('<br>')+'</div>'+(discount||normalPrice)+'<div class="muted" style="font-size:11px">Minimo ordine: '+f.min+' confezioni</div>')+'</div></article>';
 }
 function cardFormatChange(pid){
   const p=getP(pid);
@@ -133,7 +146,7 @@ function cardFormatChange(pid){
   if(!f)return;
   qtyInput.min=f.min;
   qtyInput.value=f.min;
-  priceEl.innerHTML=fmt(getPrice(p,f))+' <small>/ '+f.name+'</small>';
+  priceEl.innerHTML=(p.tag==='Sconto'&&p.full_price!=null?'<span style="text-decoration:line-through;color:var(--muted);font-size:12px;font-weight:500">'+fmt(p.full_price)+'</span> <b>'+fmt(getPrice(p,f))+'</b> <span class="badge">-'+Number(p.discount_percent||0)+'%</span>':fmt(getPrice(p,f))+' <small>/ '+f.name+'</small>');
   infoEl.textContent='Minimo: '+f.min+' confezioni · '+f.units+' pezzi per confezione';
 }
 function renderCatalog(){renderCategories();let q=document.getElementById('search').value.toLowerCase(),avail=document.getElementById('available').value,sort=document.getElementById('sort').value;let arr=visibleProducts().filter(p=>(cat==='Tutti'||p.cat===cat)&&((p.name+' '+p.code+' '+p.cat).toLowerCase().includes(q))&&(avail==='all'||(avail==='yes'?p.active:!p.active)));if(role==='gastronomo')arr=arr.filter(p=>p.active);if(sort==='up')arr.sort((a,b)=>getPrice(a,a.formats[0])-getPrice(b,b.formats[0]));if(sort==='down')arr.sort((a,b)=>getPrice(b,b.formats[0])-getPrice(a,a.formats[0]));document.getElementById('products').innerHTML=arr.length?arr.map(card).join(''):'<div class="empty">Nessun prodotto corrisponde ai filtri.</div>';renderCart();document.getElementById('statProducts').textContent=visibleProducts().filter(p=>p.active).length;document.getElementById('statOrders').textContent=orders.length;document.getElementById('statSpend').textContent=fmt(orders.filter(o=>o.status==='Consegnato'&&(role!=='gastronomo'||o.customer===currentCustomer)).reduce((s,o)=>s+o.total,0));document.getElementById('recentOrders').innerHTML=orders.filter(o=>role==='admin'||role==='fornitore'?role==='admin'||o.supplier===currentSupplier:o.customer===currentCustomer).slice(0,4).map(o=>'<tr><td><b>'+o.id+'</b></td><td>'+dt(o.created)+'</td><td>'+o.delivery+'</td><td>'+totalPackages(o)+'</td><td>'+fmt(o.total)+'</td><td>'+statusTag(o.status)+'</td></tr>').join('')||'<tr><td colspan="6">Nessun ordine.</td></tr>'}
@@ -142,8 +155,27 @@ function renderCart(){let items=getCartItems();document.getElementById('cartCoun
 function changeCart(k,d){if(!cart[k])return;cart[k].qty+=d;if(cart[k].qty<=0)delete cart[k];persist();renderCart()}
 function removeCart(k){delete cart[k];persist();renderCart()}
 function clearCart(){if(!getCartItems().length)return;cart={};persist();renderCart();toast('Carrello svuotato')}
-function toggleFav(id){favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];persist();renderCatalog();toast('Preferiti aggiornati')}
-function renderFavorites(){let arr=products.filter(p=>favorites.includes(p.id)&&p.active);document.getElementById('favoriteProducts').innerHTML=arr.map(card).join('');document.getElementById('noFavorites').classList.toggle('hidden',arr.length>0)}
+async function toggleFav(id){
+ if(role!=='gastronomo'||!activeSession)return toast('Accedi come gastronomo per salvare i preferiti.');
+ const customer=customers.find(c=>c.name===currentCustomer);
+ if(!customer?.id)return toast('Non riesco a identificare la tua gastronomia.');
+ const exists=favorites.includes(id);
+ const result=exists
+  ? await authClient.from('customer_favorites').delete().eq('customer_organization_id',customer.id).eq('product_id',id)
+  : await authClient.from('customer_favorites').insert({customer_organization_id:customer.id,product_id:id});
+ if(result.error)return toast('Preferiti non aggiornati: '+result.error.message);
+ favorites=exists?favorites.filter(x=>x!==id):[...favorites,id];
+ renderCatalog();renderFavorites();toast(exists?'Rimosso dai preferiti':'Aggiunto ai preferiti');
+}
+function renderFavorites(){
+ const panel=document.getElementById('homeFavoritePanel');
+ if(role!=='gastronomo'){panel.classList.add('hidden');return}
+ panel.classList.remove('hidden');
+ const arr=products.filter(p=>favorites.includes(p.id)&&p.active);
+ document.getElementById('homeFavoriteProducts').innerHTML=arr.map(card).join('');
+ document.getElementById('homeNoFavorites').classList.toggle('hidden',arr.length>0);
+ document.getElementById('homeFavoriteTitle').textContent='I preferiti di '+currentCustomer;
+}
 function totalPackages(o){return o.items.reduce((s,x)=>s+x.qty,0)}
 function statusTag(s){let c=s==='Consegnato'?'':s==='In preparazione'?'blue':s==='Spedito'||s==='In consegna'?'amber':s==='Annullato'?'red':'amber';return '<span class="status '+c+'">'+s+'</span>'}
 function orderActions(o){let a=[];if(role==='fornitore'||role==='admin'){if(o.status==='Ordine inviato')a.push('<button class="btn small primary" onclick="setStatus(\''+o.id+'\',\'In preparazione\')">Conferma</button>');if(o.status==='In preparazione')a.push('<button class="btn small primary" onclick="setStatus(\''+o.id+'\',\'Spedito\')">Segna spedito</button>')}if(role==='gastronomo'&&o.customer===currentCustomer){if(!['Consegnato','Annullato'].includes(o.status))a.push('<button class="btn small danger" onclick="cancelOrder(\''+o.id+'\')">Annulla</button>');if(o.status==='In consegna'||o.status==='Spedito')a.push('<button class="btn small primary" onclick="setStatus(\''+o.id+'\',\'Consegnato\')">Conferma ricezione</button>');a.push('<button class="btn small" onclick="reorder(\''+o.id+'\')">Riordina</button>')}return a.join(' ')||'—'}
