@@ -242,9 +242,16 @@ function openProduct(id){
    const row={supplier_organization_id:supplier.id,sku:document.getElementById('pc').value.trim(),name:document.getElementById('pn').value.trim(),category:document.getElementById('pCat').value,unit_label:document.getElementById('pFormat').value.trim()||'confezione',pack_size:Number(document.getElementById('pUnits').value),min_quantity:Number(document.getElementById('pMin').value),active:document.getElementById('pActive').checked,image_url:existing?.image_url||null,description:existing?.description||null,tag,discount_percent:discountPercent,full_price:fullPrice};
    const query=existing?authClient.from('products').update(row).eq('id',existing.id):authClient.from('products').insert(row);
    const {data:saved,error}=await query.select('id').single();if(error)throw error;
-   const {data:links,error:linkError}=await authClient.from('customer_suppliers').select('customer_organization_id').eq('supplier_organization_id',supplier.id).eq('active',true);if(linkError)throw linkError;
-   const priceRows=(links||[]).map(link=>({customer_organization_id:link.customer_organization_id,product_id:saved.id,price,currency:'EUR',min_quantity:Number(document.getElementById('pMin').value)}));
-   if(priceRows.length){const {error:priceError}=await authClient.from('customer_product_prices').upsert(priceRows,{onConflict:'customer_organization_id,product_id'});if(priceError)throw priceError;}
+   const pricingChanged=!existing
+    || (tag!=='Sconto'&&Math.abs(price-Number(existing.formats[0]?.base||0))>0.005)
+    || (existing.tag||'')!==tag
+    || Number(existing.discount_percent||0)!==Number(discountPercent||0)
+    || Number(existing.full_price||0)!==Number(fullPrice||0);
+   if(pricingChanged){
+    const {data:links,error:linkError}=await authClient.from('customer_suppliers').select('customer_organization_id').eq('supplier_organization_id',supplier.id).eq('active',true);if(linkError)throw linkError;
+    const priceRows=(links||[]).map(link=>({customer_organization_id:link.customer_organization_id,product_id:saved.id,price,currency:'EUR',min_quantity:Number(document.getElementById('pMin').value)}));
+    if(priceRows.length){const {error:priceError}=await authClient.from('customer_product_prices').upsert(priceRows,{onConflict:'customer_organization_id,product_id'});if(priceError)throw priceError;}
+   }
    await loadFoodTrackData();closeModal();renderAll();go('prodotti');toast(existing?'Prodotto aggiornato nel database':'Prodotto creato nel database');
   }catch(err){toast('Salvataggio prodotto non riuscito: '+(err.message||'errore database'))}finally{submit.disabled=false}
  };
