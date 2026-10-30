@@ -78,7 +78,7 @@ async function loadFoodTrackData(){
   const rows=itemRows.filter(it=>it.order_id===o.id);
   return {id:'FT-'+new Date(o.submitted_at).getFullYear()+'-'+String(o.order_number).padStart(6,'0'),dbId:o.id,customer:customer?.name||'Gastronomia',customerId:o.customer_organization_id,supplier:supplier?.name||'Fornitore',supplierId:o.supplier_organization_id,created:o.submitted_at,delivery:o.requested_delivery_date||'Da concordare',contact:o.delivery_contact||'',notes:o.delivery_notes||'',status:statusMap[o.status]||o.status,items:rows.map(it=>({productId:it.product_id,formatId:it.product_id,qty:Number(it.quantity),unitPrice:Number(it.unit_price),name:it.name_snapshot,unit:it.unit_snapshot})),total:Number(o.subtotal||0),deliveredAt:null};
  });
- const validIds=new Set(products.map(p=>String(p.id)));
+ const validIds=new Set(visibleProducts().filter(p=>p.active).map(p=>String(p.id)));
  cart=Object.fromEntries(Object.entries(cart).filter(([key])=>validIds.has(String(key).split('|')[0])));
  persist();
 }
