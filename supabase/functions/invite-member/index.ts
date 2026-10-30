@@ -43,27 +43,36 @@ Deno.serve(async (req: Request) => {
     return respond(403, { error: "Solo un amministratore della piattaforma può invitare utenti." });
   }
 
-  let body: { type?: string; name?: string; email?: string; contact?: string; city?: string; supplier?: string };
+  let body: { type?: string; name?: string; email?: string; contact?: string; city?: string; supplier?: string; supplier_ids?: string[] };
   try { body = await req.json(); } catch { return respond(400, { error: "Richiesta non valida." }); }
 
   const type = body.type;
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
+  const supplierIds = Array.isArray(body.supplier_ids) ? [...new Set(body.supplier_ids.map((id) => String(id).trim()).filter(Boolean))] : [];
   const supplierName = String(body.supplier ?? "").trim();
 
   if (!["supplier", "customer"].includes(type ?? "")) return respond(400, { error: "Tipo account non valido." });
   if (name.length < 2 || name.length > 160) return respond(400, { error: "Inserisci un nome attività valido." });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return respond(400, { error: "Inserisci un indirizzo email valido." });
 
-  let supplierOrganizationId: string | null = null;
+  let supplierOrganizationIds: string[] = [];
   if (type === "customer") {
-    if (!supplierName) return respond(400, { error: "Seleziona un fornitore." });
-    const { data: supplier, error: supplierError } = await admin
-      .from("organizations").select("id").eq("kind", "supplier").eq("name", supplierName).maybeSingle();
-    if (supplierError || !supplier) {
-      return respond(400, { error: "Il fornitore selezionato non ha ancora un account FoodTrack. Crea prima il fornitore e riprova." });
+    if (!supplierIds.length && supplierName) {
+      const { data: legacySupplier, error: legacyError } = await admin
+        .from("organizations").select("id").eq("kind", "supplier").eq("name", supplierName).maybeSingle();
+      if (legacyError || !legacySupplier) {
+        return respond(400, { error: "Il fornitore selezionato non ha un account FoodTrack. Crea prima il fornitore e riprova." });
+      }
+      supplierIds.push(legacySupplier.id);
     }
-    supplierOrganizationId = supplier.id;
+    if (!supplierIds.length) return respond(400, { error: "Seleziona almeno un fornitore." });
+    const { data: selectedSuppliers, error: supplierError } = await admin
+      .from("organizations").select("id").eq("kind", "supplier").in("id", supplierIds);
+    if (supplierError || !selectedSuppliers || selectedSuppliers.length !== supplierIds.length) {
+      return respond(400, { error: "Uno o più fornitori selezionati non esistono o non sono validi." });
+    }
+    supplierOrganizationIds = selectedSuppliers.map((supplier) => supplier.id);
   }
 
   const kind = type === "supplier" ? "supplier" : "customer";
@@ -98,17 +107,18 @@ Deno.serve(async (req: Request) => {
     return respond(500, { error: "Invito generato ma non è stato possibile assegnare il ruolo. L'operazione è stata annullata; controlla la configurazione del database." });
   }
 
-  if (type === "customer" && supplierOrganizationId) {
-    const { error: linkError } = await admin.from("customer_suppliers").insert({
+  if (type === "customer") {
+    const links = supplierOrganizationIds.map((supplier_organization_id) => ({
       customer_organization_id: organization.id,
-      supplier_organization_id: supplierOrganizationId,
+      supplier_organization_id,
       active: true,
-    });
+    }));
+    const { error: linkError } = await admin.from("customer_suppliers").insert(links);
     if (linkError) {
       await admin.from("memberships").delete().eq("organization_id", organization.id);
       await admin.auth.admin.deleteUser(invited.user.id);
       await admin.from("organizations").delete().eq("id", organization.id);
-      return respond(500, { error: "Non è stato possibile collegare il gastronomo al fornitore. L'operazione è stata annullata." });
+      return respond(500, { error: "Non è stato possibile associare tutti i fornitori. L'operazione è stata annullata." });
     }
   }
 
