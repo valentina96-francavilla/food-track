@@ -1,11 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 320" width="100%" height="100%" role="img" aria-labelledby="title desc">
-  <title id="title">FoodTrack</title><desc id="desc">FoodTrack, gestione ordini e prodotti</desc>
-  <rect width="1000" height="320" fill="#FFFFFF"/>
-  <rect x="24" y="32" width="250" height="250" rx="58" fill="#D2F165"/>
-  <path d="M116 226 C88 226 70 207 70 180 C70 153 91 141 116 132 C144 122 168 111 168 82" fill="none" stroke="#112211" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M137 83 L190 72 L180 125 Z" fill="#112211"/>
-  <path d="M148 111 L190 72" fill="none" stroke="#112211" stroke-width="22" stroke-linecap="round"/>
-  <line x1="315" y1="55" x2="315" y2="258" stroke="#112211" stroke-width="2" opacity=".35"/>
-  <text x="350" y="157" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="800" letter-spacing="-4" fill="#112211">foodtrack<tspan fill="#245137">.</tspan></text>
-  <text x="355" y="211" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" letter-spacing="1" fill="#112211">GESTIONE ORDINI E PRODOTTI</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1708 624" width="100%" height="100%" role="img" aria-labelledby="title desc">
+  <title id="title">FoodTrack</title>
+  <desc id="desc">FoodTrack, gestione ordini e prodotti</desc>
+  <rect width="1708" height="624" fill="#F3F4E9"/>
+  <rect x="329" y="164" width="280" height="296" rx="86" fill="#C9EF62"/>
+  <path d="M421 382 C421 338 449 312 493 293 C527 278 545 254 545 226" fill="none" stroke="#07170F" stroke-width="43" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M426 386 C391 386 374 363 374 337 C374 308 395 291 427 277 C462 262 485 246 485 217" fill="none" stroke="#07170F" stroke-width="43" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M500 229 L559 221 L551 280 Z" fill="#07170F"/>
+  <path d="M510 269 L557 223" fill="none" stroke="#07170F" stroke-width="39" stroke-linecap="round"/>
+  <line x1="656" y1="165" x2="656" y2="459" stroke="#07170F" stroke-width="2" opacity=".8"/>
+  <text x="702" y="339" font-family="Arial, Helvetica, sans-serif" font-size="154" font-weight="900" letter-spacing="-7" fill="#07170F">foodtrack.</text>
+  <text x="710" y="406" font-family="Arial, Helvetica, sans-serif" font-size="45" font-weight="800" letter-spacing="0" fill="#07170F">GESTIONE ORDINI E PRODOTTI</text>
 </svg>
