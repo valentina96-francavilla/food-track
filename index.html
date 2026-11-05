@@ -110,7 +110,8 @@ async function loadFoodTrackData(){
    favorites=(favRes.data||[]).map(x=>x.product_id);
   }else favorites=[];
  }else favorites=[];
- const itemRows=itemRes.data||[];\n recurringOrders=recurringRes.data||[]; recurringItems=recurringItemRes.data||[]; recurringOccurrences=occurrenceRes.data||[];
+ const itemRows=itemRes.data||[];
+ recurringOrders=recurringRes.data||[]; recurringItems=recurringItemRes.data||[]; recurringOccurrences=occurrenceRes.data||[];
  const statusMap={draft:'Bozza',submitted:'Ordine inviato',accepted:'Confermato',preparing:'In preparazione',shipped:'Spedito',delivered:'Consegnato',cancelled:'Annullato'};
  orders=(orderRes.data||[]).map(o=>{
   const customer=orgById[o.customer_organization_id], supplier=orgById[o.supplier_organization_id];
