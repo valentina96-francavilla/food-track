@@ -81,7 +81,10 @@ async function loadFoodTrackData(){
   authClient.from('products').select('id,supplier_organization_id,sku,name,description,category,unit_label,pack_size,min_quantity,image_url,active,tag,discount_percent,full_price,promotion_expires_at').order('name'),
   authClient.from('customer_product_prices').select('customer_organization_id,product_id,price,min_quantity,currency,promotion_type,discount_percent,promotional_price,promotion_start_at,promotion_end_at'),
   authClient.from('orders').select('*').order('submitted_at',{ascending:false}).limit(1000),
-  authClient.from('order_items').select('*')
+  authClient.from('order_items').select('*'),
+  authClient.from('recurring_orders').select('*').order('created_at',{ascending:false}),
+  authClient.from('recurring_order_items').select('*'),
+  authClient.from('recurring_order_occurrences').select('*').order('delivery_date',{ascending:true})
  ]);
  for(const r of [orgRes,linkRes,productRes,priceRes,orderRes,itemRes,recurringRes,recurringItemRes,occurrenceRes]) if(r.error) throw r.error;
  const orgs=orgRes.data||[], links=linkRes.data||[], rawProducts=productRes.data||[], rawPrices=priceRes.data||[];
@@ -481,9 +484,11 @@ function recurringDateLabel(v){if(!v)return '—';return new Date(v+'T00:00:00')
 function recurringSupplierName(id){return suppliers.find(x=>x.id===id)?.name||'Fornitore'}
 function recurringProductOptions(supplierId,selected=''){return products.filter(p=>p.active&&p.supplierId===supplierId).map(p=>'<option value="'+p.id+'" '+(String(p.id)===String(selected)?'selected':'')+'>'+safeText(p.name)+'</option>').join('')}
 function recurringItemRow(supplierId,productId='',qty=1){return '<div class="formrow recurring-item-row" style="gap:8px;margin:8px 0"><select class="field recurring-product" required style="flex:1"><option value="">Seleziona prodotto</option>'+recurringProductOptions(supplierId,productId)+'</select><input class="field recurring-qty" type="number" min="0.01" step="0.01" value="'+qty+'" required style="width:110px" aria-label="Quantità"><button type="button" class="btn small danger" onclick="this.closest(\'.recurring-item-row\').remove()">Rimuovi</button></div>'}
-function openRecurringForm(id=null){
+async function openRecurringForm(id=null){
  if(role!=='gastronomo'||!activeSession)return toast('La gestione degli ordini ricorrenti è disponibile per il Negozio.');
- const customer=customers.find(c=>c.name===currentCustomer);if(!customer?.id)return toast('Negozio non trovato.');
+ const {data:membership,error:membershipError}=await authClient.from('memberships').select('organization_id').eq('user_id',activeSession.user.id).eq('role','customer').maybeSingle();
+ if(membershipError)return toast('Impossibile verificare il Negozio associato: '+membershipError.message);
+ const customer=customers.find(c=>c.id===membership?.organization_id);if(!customer?.id)return toast('Nessuna organizzazione Negozio associata a questo account. Verifica l’associazione dell’account nel pannello Superadmin.');
  const r=id?recurringOrders.find(x=>x.id===id):null;if(id&&!r)return toast('Ricorrenza non trovata.');
  const linked=suppliers.filter(x=>(customer.supplierIds||[]).includes(x.id));
  const supplierId=r?.supplier_organization_id||linked[0]?.id||'';
