@@ -248,7 +248,7 @@ function renderFavorites(){
  const panel=document.getElementById('homeFavoritePanel');
  if(role!=='gastronomo'){panel.classList.add('hidden');return}
  panel.classList.remove('hidden');
- const arr=products.filter(p=>favorites.includes(p.id)&&p.active);
+ const arr=products.filter(p=>favorites.includes(p.id)&&p.active&&hasCustomerPrice(p));
  document.getElementById('homeFavoriteProducts').innerHTML=arr.map(card).join('');
  document.getElementById('homeNoFavorites').classList.toggle('hidden',arr.length>0);
  document.getElementById('homeFavoriteTitle').textContent='I preferiti di '+currentCustomer;
