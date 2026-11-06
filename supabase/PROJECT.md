@@ -30,3 +30,9 @@
 - Migration history drift is documented in `supabase/MIGRATION_AUDIT.md`. Do not reset or rebuild the production database until historical migration files have been reconciled.
 - Do not enable paid plans, automatic upgrades or services that create recurring charges without explicit approval.
 - The Supabase free tier has quotas and availability limits; it is not a service-level guarantee for a nationwide commercial service.
+
+
+## Account e notifiche
+- `organizations.active` controlla l'accesso degli account Negozio/Fornitore. Una policy RLS restrittiva blocca tutte le tabelle applicative quando un utente è associato a un'organizzazione disabilitata; i trigger impediscono anche le scritture tramite funzioni privilegiate.
+- `public.notifications` contiene notifiche in-app per destinatario. I trigger generano `new_order` per il fornitore coinvolto e l'Admin, `order_accepted` per il Negozio e `delivery_reminder` il giorno prima della consegna per fornitore e Admin. Realtime aggiorna la campanella.
+- `public.generate_foodtrack_delivery_reminders()` è pianificata ogni giorno tramite `pg_cron`.
