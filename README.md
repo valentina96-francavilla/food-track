@@ -1,47 +1,42 @@
 # FoodTrack
 
-Portale B2B per ordini alimentari: catalogo fornitori, listini, gastronomie, ordini e gestione per ruolo.
+Piattaforma B2B per la gestione di cataloghi alimentari, listini per punto vendita, ordini e consegne ricorrenti.
 
-## Link
-- Landing page dimostrativa: https://valentina96-francavilla.github.io/food-track/landing.html
-- Portale: https://valentina96-francavilla.github.io/food-track/
+## Accesso
+- Portale: https://foodtrack.valeyastudio.it
+- Landing page: https://foodtrack.valeyastudio.it/landing.html
 
 ## Architettura
-- Frontend statico HTML/CSS/JavaScript pubblicato tramite GitHub Pages.
-- Autenticazione Supabase Auth collegata al progetto FoodTrack (ID: itzdbziwfwnhqbnhlczy).
-- Database PostgreSQL con organizzazioni, membership, relazioni gastronomia-fornitore, prodotti, listini personalizzati per gastronomia, ordini e righe d'ordine.
-- RLS attiva sulle tabelle applicative.
-- Storage immagini catalogo: bucket foodtrack-product-images. Immagini pubbliche in lettura; upload, modifica ed eliminazione riservati a fornitori autorizzati o amministratore. Il percorso deve iniziare con l'UUID dell'organizzazione fornitrice.
-- Checkout tramite funzione PostgreSQL submit_foodtrack_order: valida il ruolo, i collegamenti commerciali, la disponibilità, le quantità minime e i prezzi del listino sul server; salva ordini e righe nel database e crea un ordine separato per ciascun fornitore in un'unica transazione.
-- I pagamenti online non sono previsti: si svolgono esternamente tra le aziende.
+- Frontend HTML/CSS/JavaScript pubblicato tramite GitHub Pages.
+- Autenticazione tramite Supabase Auth.
+- Database PostgreSQL con organizzazioni, membership, relazioni Negozio-Fornitore, prodotti, listini, ordini e ricorrenze.
+- Row Level Security sulle tabelle applicative.
+- Storage immagini catalogo tramite bucket `foodtrack-product-images`.
+- Checkout validato lato database tramite `submit_foodtrack_order`, con verifica di appartenenza, collegamenti commerciali, disponibilità, quantità minime e prezzi.
+- Generazione ordini ricorrenti tramite funzione PostgreSQL pianificata con `pg_cron`.
+- I pagamenti non vengono elaborati da FoodTrack: restano esterni tra le aziende.
 
-## Dati dimostrativi inseriti
-- 2 fornitori: Fornitore Nord e Fornitore Sud.
-- 2 gastronomie: Gastronomia Milano e Gastronomia Bari.
-- 12 prodotti in 4 categorie.
-- 24 prezzi personalizzati (un prezzo per prodotto per ciascuna gastronomia).
-- 4 relazioni gastronomia-fornitore attive.
-I dati e i prezzi sono fittizi e servono per testare il flusso. Le organizzazioni demo non hanno account di accesso creati automaticamente.
+## Stato tecnico e limiti noti
+Il portale e il database sono collegati. Il repository contiene il codice applicativo e le migrazioni; il database attivo contiene record inseriti durante la configurazione iniziale. Prima dell'onboarding commerciale occorre verificare e confermare anagrafiche, prodotti, listini e associazioni, senza assumere che ogni record esistente sia già un dato commerciale validato.
 
-## Stato e limiti
-Il catalogo, i listini e la creazione degli ordini sono collegati al database. È stata verificata la sintassi JavaScript e la presenza dei dati nel database, ma non è ancora stato eseguito un test end-to-end da browser con account distinti. Non usare il portale per ordini commerciali reali finché non sono stati verificati login, checkout, lettura degli ordini da parte del fornitore e isolamento dei dati.
+Le seguenti attività restano necessarie prima di aprire il servizio a un utilizzo commerciale generalizzato:
+1. Il carrello è salvato nel browser e non è ancora sincronizzato tra dispositivi o sessioni.
+2. Completare e verificare la persistenza di tutte le modifiche alle anagrafiche e ai collegamenti Negozio-Fornitore.
+3. Eseguire test end-to-end con account distinti per Amministratore, Negozio e Fornitore, inclusi test di isolamento tra organizzazioni.
+4. Verificare l'intero ciclo degli ordini ricorrenti con account e dati di collaudo dedicati.
+5. Verificare upload, modifica e visualizzazione delle immagini nel flusso completo.
+6. Configurare e collaudare notifiche operative e gestione degli errori.
+7. Completare le impostazioni di sicurezza di Supabase Auth e verificare backup, recupero e monitoraggio.
+8. Definire condizioni di servizio, privacy, conservazione dati, assistenza e responsabilità operative prima dell'apertura nazionale.
 
-La creazione/modifica/attivazione dei prodotti, i prezzi personalizzati per gastronomia e gli aggiornamenti di stato/annullamento degli ordini sono collegati alle scritture del database. Carrello e preferiti restano locali al browser. La modifica delle anagrafiche esistenti e di alcuni collegamenti commerciali richiede ancora il completamento delle scritture persistenti. Le immagini sono predisposte nello storage, ma l'upload dal modulo prodotto non è ancora collegato.
-
-## Prossime priorità
-1. Testare checkout con account admin e account gastronomia reale.
-2. Testare che il fornitore veda gli ordini ricevuti e che gli stati siano aggiornati nel database.
-3. Collegare modifica/creazione prodotti e listini al database.
-4. Collegare upload e visualizzazione immagini reali.
-5. Collegare aggiornamenti stato ordine e notifiche.
-6. Testare annullamenti, errori, quantità minime e isolamento tra aziende.
-7. Valutare hosting adatto a un servizio commerciale prima del lancio nazionale; GitHub Pages è usato qui per la demo frontend.
+## Deploy
+Il deploy del frontend avviene automaticamente su GitHub Pages a ogni push sul branch `main`. La pipeline esegue un controllo di sintassi JavaScript e controlli minimi sui marcatori applicativi prima della pubblicazione.
 
 ## Migrazioni
-- supabase/migrations/20261022000000_initial_schema.sql
-- supabase/migrations/20261023_foodtrack_product_image_storage.sql
-- supabase/migrations/20261026_foodtrack_seed_catalog_and_checkout.sql
-- supabase/migrations/20261026191901_foodtrack_admin_product_price_order_permissions.sql
-- supabase/migrations/20261026192000_foodtrack_restrict_admin_helper_execution.sql
+Le migrazioni SQL sono conservate in `supabase/migrations`. Le modifiche eseguite direttamente sul progetto Supabase devono essere riportate anche in una migrazione versionata, così che il codice e lo schema possano essere ricostruiti in modo coerente.
 
-Le migrazioni documentano il database; non sostituiscono test applicativi e verifiche di sicurezza.
+## Regole di sicurezza
+- Non inserire mai chiavi Supabase `service_role` o segreti nel frontend.
+- I ruoli sono assegnati tramite membership gestite dall'amministrazione.
+- Non consentire agli utenti di autoassegnarsi ruoli privilegiati.
+- Le funzioni `SECURITY DEFINER` devono avere privilegi minimi e controlli di autorizzazione espliciti.
