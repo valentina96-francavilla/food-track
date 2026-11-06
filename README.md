@@ -17,17 +17,18 @@ Piattaforma B2B per la gestione di cataloghi alimentari, listini per punto vendi
 - I pagamenti non vengono elaborati da FoodTrack: restano esterni tra le aziende.
 
 ## Stato tecnico e limiti noti
-Il portale e il database sono collegati. Il repository contiene il codice applicativo e le migrazioni; il database attivo contiene record inseriti durante la configurazione iniziale. Prima dell'onboarding commerciale occorre verificare e confermare anagrafiche, prodotti, listini e associazioni, senza assumere che ogni record esistente sia già un dato commerciale validato.
+Fornitori, negozi, prodotti, listini, associazioni commerciali e ordini presenti nel database sono considerati dati ufficiali da parte della titolare. Non devono essere cancellati, rinominati o sostituiti come se fossero record di prova.
 
-Le seguenti attività restano necessarie prima di aprire il servizio a un utilizzo commerciale generalizzato:
-1. Il carrello è salvato nel browser e non è ancora sincronizzato tra dispositivi o sessioni.
-2. Completare e verificare la persistenza di tutte le modifiche alle anagrafiche e ai collegamenti Negozio-Fornitore.
-3. Eseguire test end-to-end con account distinti per Amministratore, Negozio e Fornitore, inclusi test di isolamento tra organizzazioni.
-4. Verificare l'intero ciclo degli ordini ricorrenti con account e dati di collaudo dedicati.
-5. Verificare upload, modifica e visualizzazione delle immagini nel flusso completo.
-6. Configurare e collaudare notifiche operative e gestione degli errori.
-7. Completare le impostazioni di sicurezza di Supabase Auth e verificare backup, recupero e monitoraggio.
-8. Definire condizioni di servizio, privacy, conservazione dati, assistenza e responsabilità operative prima dell'apertura nazionale.
+Il carrello è persistito su PostgreSQL tramite `shopping_carts` e `shopping_cart_items`, con RLS per account e organizzazione, validazione server-side di prodotti, collegamenti e prezzi e sincronizzazione Realtime tra sessioni dello stesso account. Le modifiche ai fornitori e ai collegamenti negozio-fornitore vengono salvate su Supabase. L'amministratore può invitare un account a un'organizzazione fornitore già esistente senza creare un duplicato.
+
+Verifiche e attività ancora aperte prima dell'apertura commerciale generalizzata:
+1. Completare i test operativi dall'interfaccia browser con account distinti per Amministratore, Negozio e Fornitore. I test SQL transazionali di isolamento e salvataggio carrello sono stati eseguiti e annullati con rollback.
+2. Associare le utenze reali a Fiorucci e Venditti tramite inviti ai rispettivi indirizzi email. Le organizzazioni esistenti non sono state modificate; le utenze attuali di altri fornitori non sono state riassegnate.
+3. Verificare l'intero ciclo degli ordini ricorrenti con una ricorrenza reale autorizzata; il cron è attivo, ma non ci sono ricorrenze registrate da collaudare.
+4. Verificare upload, modifica e visualizzazione delle immagini nel flusso completo.
+5. Configurare e collaudare notifiche operative e gestione degli errori. Il server SMTP di Auth è stato configurato dalla titolare, ma la consegna non è stata verificata in questa sessione.
+6. Completare le impostazioni di sicurezza di Supabase Auth, verificare backup, recupero e monitoraggio.
+7. Definire condizioni di servizio, privacy, conservazione dati, assistenza e responsabilità operative prima dell'apertura nazionale.
 
 ## Deploy
 Il deploy del frontend avviene automaticamente su GitHub Pages a ogni push sul branch `main`. La pipeline esegue un controllo di sintassi JavaScript e controlli minimi sui marcatori applicativi prima della pubblicazione.
