@@ -7,12 +7,14 @@
 
 ## Backend responsibilities
 - Supabase Auth for account access and password recovery.
-- PostgreSQL for organizations, memberships, supplier-customer links, products, customer-specific prices, orders, order items and recurring orders.
+- PostgreSQL for organizations, memberships, supplier-customer links, products, customer-specific prices, persistent shopping carts, orders, order items and recurring orders.
 - Row Level Security on application tables.
 - Storage bucket `foodtrack-product-images` for product imagery.
 - `submit_foodtrack_order` validates customer membership, active commercial links, product availability, minimum quantities and current customer prices on the server. It creates one order per supplier in a single transaction.
 - `generate_recurring_foodtrack_orders` is scheduled through `pg_cron`.
 - `update_recurring_order_occurrence` allows a customer to change a generated occurrence only within the configured 48-hour deadline and without changing the recurring template.
+- `shopping_carts` and `shopping_cart_items` persist one cart per authenticated account. RLS and the private `can_manage_foodtrack_cart` helper restrict access to the owner and authorized customer/supplier relationship. `save_foodtrack_cart` is SECURITY INVOKER and validates active products, current prices, active links and minimum quantities before saving.
+- Shopping cart tables are included in the `supabase_realtime` publication so the same account sees cart updates across active sessions.
 
 ## Security
 - Only the Supabase publishable/anon key may be present in public frontend code.
@@ -23,6 +25,7 @@
 
 ## Operational notes
 - The frontend is hosted on GitHub Pages and communicates with this Supabase project.
-- The active database contains setup records. Confirm the legal entity, product, price and supplier-customer data before inviting commercial users.
+- The owner has confirmed that organizations, suppliers, products, price lists, commercial links and orders currently in the database are official records. Do not treat them as disposable test data or delete them without explicit approval.
+- Fiorucci and Venditti currently have no supplier membership. The admin UI now supports inviting an account into each existing supplier organization without creating a duplicate. Existing supplier memberships are not reassigned automatically.
 - Do not enable paid plans, automatic upgrades or services that create recurring charges without explicit approval.
 - The Supabase free tier has quotas and availability limits; it is not a service-level guarantee for a nationwide commercial service.
