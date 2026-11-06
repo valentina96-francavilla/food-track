@@ -34,7 +34,7 @@ Verifiche e attività ancora aperte prima dell'apertura commerciale generalizzat
 Il deploy del frontend avviene automaticamente su GitHub Pages a ogni push sul branch `main`. La pipeline esegue un controllo di sintassi JavaScript e controlli minimi sui marcatori applicativi prima della pubblicazione.
 
 ## Migrazioni
-Le migrazioni SQL sono conservate in `supabase/migrations`. Le modifiche eseguite direttamente sul progetto Supabase devono essere riportate anche in una migrazione versionata, così che il codice e lo schema possano essere ricostruiti in modo coerente.
+Le migrazioni SQL sono conservate in `supabase/migrations`. Le nuove modifiche sono versionate anche nel progetto Supabase. La cronologia storica remota non è ancora interamente allineata ai file del repository: il dettaglio e i vincoli di ripristino sono documentati in `supabase/MIGRATION_AUDIT.md`. Non eseguire reset o ricostruzioni distruttive sul database attivo.
 
 ## Regole di sicurezza
 - Non inserire mai chiavi Supabase `service_role` o segreti nel frontend.
