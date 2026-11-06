@@ -13,7 +13,9 @@ Piattaforma B2B per la gestione di cataloghi alimentari, listini per punto vendi
 - Row Level Security sulle tabelle applicative.
 - Storage immagini catalogo tramite bucket `foodtrack-product-images`.
 - Checkout validato lato database tramite `submit_foodtrack_order`, con verifica di appartenenza, collegamenti commerciali, disponibilità, quantità minime e prezzi.
-- Generazione ordini ricorrenti tramite funzione PostgreSQL pianificata con `pg_cron`.
+- Generazione ordini ricorrenti e promemoria consegne tramite funzioni PostgreSQL pianificate con `pg_cron`.
+- Notifiche interne persistenti e in tempo reale: nuovo ordine al fornitore interessato e all'admin, ordine accettato al negozio, promemoria il giorno precedente alla consegna al fornitore e all'admin.
+- Stato `organizations.active` applicato a livello RLS: la disattivazione blocca l'accesso ai dati e alle operazioni per tutti gli account associati; la riattivazione ripristina l'accesso.
 - I pagamenti non vengono elaborati da FoodTrack: restano esterni tra le aziende.
 
 ## Stato tecnico e limiti noti
@@ -26,7 +28,7 @@ Verifiche e attività ancora aperte prima dell'apertura commerciale generalizzat
 2. Associare le utenze reali a Fiorucci e Venditti tramite inviti ai rispettivi indirizzi email. Le organizzazioni esistenti non sono state modificate; le utenze attuali di altri fornitori non sono state riassegnate.
 3. Verificare l'intero ciclo degli ordini ricorrenti con una ricorrenza reale autorizzata; il cron è attivo, ma non ci sono ricorrenze registrate da collaudare.
 4. Verificare upload, modifica e visualizzazione delle immagini nel flusso completo.
-5. Configurare e collaudare notifiche operative e gestione degli errori. Il server SMTP di Auth è stato configurato dalla titolare, ma la consegna non è stata verificata in questa sessione.
+5. Collaudare le notifiche dall'interfaccia con account distinti per Negozio, Fornitore e Admin; le notifiche interne e i trigger sono stati verificati con transazioni di prova annullate. Le email e le notifiche push non fanno parte del sistema attuale.
 6. Completare le impostazioni di sicurezza di Supabase Auth, verificare backup, recupero e monitoraggio.
 7. Definire condizioni di servizio, privacy, conservazione dati, assistenza e responsabilità operative prima dell'apertura nazionale.
 
