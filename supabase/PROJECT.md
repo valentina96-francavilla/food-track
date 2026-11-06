@@ -4,12 +4,25 @@
 - Project ref: `itzdbziwfwnhqbnhlczy`
 - Region: `eu-west-1`
 - Project URL: `https://itzdbziwfwnhqbnhlczy.supabase.co`
-- Cost quote at creation: `0 EUR/month`
 
-The database schema and the follow-up indexes/policy migration were applied to this dedicated project and verified through the Supabase table listing.
+## Backend responsibilities
+- Supabase Auth for account access and password recovery.
+- PostgreSQL for organizations, memberships, supplier-customer links, products, customer-specific prices, orders, order items and recurring orders.
+- Row Level Security on application tables.
+- Storage bucket `foodtrack-product-images` for product imagery.
+- `submit_foodtrack_order` validates customer membership, active commercial links, product availability, minimum quantities and current customer prices on the server. It creates one order per supplier in a single transaction.
+- `generate_recurring_foodtrack_orders` is scheduled through `pg_cron`.
+- `update_recurring_order_occurrence` allows a customer to change a generated occurrence only within the configured 48-hour deadline and without changing the recurring template.
 
-The frontend has **not yet been connected** to this backend. Do not treat the app as ready for real orders until login, onboarding/invitations, tenant membership management, server-side price and order-total validation, order state transitions, and authorization tests are implemented.
+## Security
+- Only the Supabase publishable/anon key may be present in public frontend code.
+- Never put the `service_role` key or secret keys in the repository or browser.
+- Roles are assigned through `memberships`; users must not be able to assign themselves privileged roles.
+- Privileged functions use explicit identity and organization checks. Keep `SECURITY DEFINER` grants restricted to the roles that need them.
+- All new public-schema tables must have RLS enabled and policies matching the organization-level access model.
 
-Only a Supabase publishable/anon key may be used in public frontend code, and only after RLS is enabled and verified. Never place a service-role/secret key in the repository. The public app must not expose an open signup path that lets visitors assign themselves privileged roles.
-
-The free plan has usage quotas and may pause projects after inactivity. A zero-cost quote at creation does not guarantee unlimited availability. Do not enable paid plans or automatic upgrades.
+## Operational notes
+- The frontend is hosted on GitHub Pages and communicates with this Supabase project.
+- The active database contains setup records. Confirm the legal entity, product, price and supplier-customer data before inviting commercial users.
+- Do not enable paid plans, automatic upgrades or services that create recurring charges without explicit approval.
+- The Supabase free tier has quotas and availability limits; it is not a service-level guarantee for a nationwide commercial service.
