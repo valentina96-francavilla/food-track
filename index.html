@@ -423,7 +423,7 @@ function useSupplier(name){currentSupplier=name;role='fornitore';setupNav();toas
 function renderAccount(){document.getElementById('accountInfo').innerHTML='<p><b>Ruolo:</b> '+(role==='gastronomo'?'Negozio':role==='fornitore'?'Fornitore':'Amministratore')+'</p><p style="margin-top:9px"><b>Negozio attivo:</b> '+currentCustomer+'</p><p style="margin-top:9px"><b>Fornitore attivo:</b> '+currentSupplier+'</p><p style="margin-top:9px"><b>Memoria carrello:</b> '+getCartItems().length+' righe nel browser</p><div class="delivery">Accesso verificato tramite Supabase Auth. Il ruolo viene letto dal database; i dati operativi vengono letti dal database FoodTrack.</div>'}
 
 function safeText(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-function deliveryISO(o){return typeof o.delivery==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(o.delivery)?o.delivery:''}
+function deliveryISO(o){return typeof o.delivery==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.delivery)?o.delivery:''}
 function deliveryLabel(v){if(!v)return 'Data non indicata';const d=new Date(v+'T00:00:00');return d.toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
 function orderDetail(id){
  const o=orders.find(x=>x.id===id);if(!o)return toast('Ordine non trovato.');
