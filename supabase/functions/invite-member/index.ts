@@ -56,6 +56,29 @@ Deno.serve(async (req: Request) => {
   if (name.length < 2 || name.length > 160) return respond(400, { error: "Inserisci un nome attività valido." });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return respond(400, { error: "Inserisci un indirizzo email valido." });
 
+  let existingAuthUser: { id: string; email_confirmed_at?: string | null } | null = null;
+  for (let page = 1; page <= 100; page++) {
+    const { data: userPage, error: userListError } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (userListError) return respond(500, { error: "Non è stato possibile verificare l'indirizzo email." });
+    const match = userPage.users.find((user) => user.email?.toLowerCase() === email);
+    if (match) {
+      existingAuthUser = { id: match.id, email_confirmed_at: match.email_confirmed_at };
+      break;
+    }
+    if (userPage.users.length < 1000) break;
+  }
+  if (existingAuthUser) {
+    const { data: currentMemberships, error: currentMembershipError } = await admin
+      .from("memberships").select("organization_id,role").eq("user_id", existingAuthUser.id);
+    if (currentMembershipError) return respond(500, { error: "Non è stato possibile verificare le organizzazioni associate all'account." });
+    if (currentMemberships?.length) {
+      return respond(409, { error: "Questo indirizzo è già associato a un account FoodTrack. Non sposto automaticamente un account tra aziende." });
+    }
+    if (!existingAuthUser.email_confirmed_at) {
+      return respond(409, { error: "Questo indirizzo è già registrato ma non verificato. Completa prima la verifica email oppure usa un altro indirizzo." });
+    }
+  }
+
   let supplierOrganizationIds: string[] = [];
   if (type === "customer") {
     if (!supplierIds.length && supplierName) {
@@ -102,23 +125,29 @@ Deno.serve(async (req: Request) => {
     organization = created;
     createdOrganization = true;
   }
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: "https://foodtrack.valeyastudio.it/",
-    data: { organization_name: name, account_type: kind, contact_name: String(body.contact ?? "").trim() },
-  });
-  if (inviteError || !invited.user) {
-    if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
-    return respond(400, { error: inviteError?.message ?? "Non è stato possibile inviare l'invito." });
+  let invitedUserId: string;
+  const emailSent = !existingAuthUser;
+  if (existingAuthUser) {
+    invitedUserId = existingAuthUser.id;
+  } else {
+    const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: "https://foodtrack.valeyastudio.it/",
+      data: { organization_name: name, account_type: kind, contact_name: String(body.contact ?? "").trim() },
+    });
+    if (inviteError || !invited.user) {
+      if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
+      return respond(400, { error: inviteError?.message ?? "Non è stato possibile inviare l'invito." });
+    }
+    invitedUserId = invited.user.id;
   }
-
   const { error: insertMembershipError } = await admin.from("memberships").insert({
     organization_id: organization.id,
-    user_id: invited.user.id,
+    user_id: invitedUserId,
     role,
   });
 
   if (insertMembershipError) {
-    await admin.auth.admin.deleteUser(invited.user.id);
+    if (!existingAuthUser) await admin.auth.admin.deleteUser(invitedUserId);
     if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
     return respond(500, { error: "Invito generato ma non è stato possibile assegnare il ruolo. L'operazione è stata annullata; controlla la configurazione del database." });
   }
@@ -132,7 +161,7 @@ Deno.serve(async (req: Request) => {
     const { error: linkError } = await admin.from("customer_suppliers").insert(links);
     if (linkError) {
       await admin.from("memberships").delete().eq("organization_id", organization.id);
-      await admin.auth.admin.deleteUser(invited.user.id);
+      if (!existingAuthUser) await admin.auth.admin.deleteUser(invitedUserId);
       if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
       return respond(500, { error: "Non è stato possibile associare tutti i fornitori. L'operazione è stata annullata." });
     }
@@ -144,6 +173,8 @@ Deno.serve(async (req: Request) => {
     email,
     type,
     existing_organization: !createdOrganization,
-    message: "Account creato e invito inviato.",
+    existing_auth_user: Boolean(existingAuthUser),
+    email_sent: emailSent,
+    message: existingAuthUser ? "Account esistente associato all'organizzazione." : "Account creato e invito inviato.",
   });
 });
