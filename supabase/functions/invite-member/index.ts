@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
     return respond(403, { error: "Solo un amministratore della piattaforma può invitare utenti." });
   }
 
-  let body: { type?: string; name?: string; email?: string; contact?: string; city?: string; supplier?: string; supplier_ids?: string[] };
+  let body: { type?: string; name?: string; email?: string; contact?: string; city?: string; supplier?: string; supplier_ids?: string[]; organization_id?: string };
   try { body = await req.json(); } catch { return respond(400, { error: "Richiesta non valida." }); }
 
   const type = body.type;
@@ -77,21 +77,37 @@ Deno.serve(async (req: Request) => {
 
   const kind = type === "supplier" ? "supplier" : "customer";
   const role = kind;
-  const { data: organization, error: orgError } = await admin
-    .from("organizations")
-    .insert({ name, kind, email, contact_name: kind === "supplier" ? (String(body.contact ?? "").trim() || null) : null })
-    .select("id")
-    .single();
-  if (orgError || !organization) {
-    return respond(400, { error: orgError?.code === "23505" ? "Esiste già un'attività con questi dati." : (orgError?.message ?? "Impossibile creare l'attività.") });
-  }
+  const existingOrganizationId = type === "supplier" ? String(body.organization_id ?? "").trim() : "";
+  let organization: { id: string; name: string } | null = null;
+  let createdOrganization = false;
 
+  if (existingOrganizationId) {
+    const { data: existing, error: existingError } = await admin
+      .from("organizations").select("id,name,kind").eq("id", existingOrganizationId).eq("kind", "supplier").maybeSingle();
+    if (existingError || !existing) return respond(404, { error: "Il fornitore selezionato non esiste." });
+    const { data: existingMembership, error: existingMembershipError } = await admin
+      .from("memberships").select("id").eq("organization_id", existing.id).eq("role", "supplier").maybeSingle();
+    if (existingMembershipError) return respond(500, { error: "Non è stato possibile verificare gli accessi esistenti." });
+    if (existingMembership) return respond(409, { error: "Questo fornitore ha già un account associato." });
+    organization = { id: existing.id, name: existing.name };
+  } else {
+    const { data: created, error: orgError } = await admin
+      .from("organizations")
+      .insert({ name, kind, email, contact_name: kind === "supplier" ? (String(body.contact ?? "").trim() || null) : null })
+      .select("id,name")
+      .single();
+    if (orgError || !created) {
+      return respond(400, { error: orgError?.code === "23505" ? "Esiste già un'attività con questi dati." : (orgError?.message ?? "Impossibile creare l'attività.") });
+    }
+    organization = created;
+    createdOrganization = true;
+  }
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: "https://foodtrack.valeyastudio.it/",
     data: { organization_name: name, account_type: kind, contact_name: String(body.contact ?? "").trim() },
   });
   if (inviteError || !invited.user) {
-    await admin.from("organizations").delete().eq("id", organization.id);
+    if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
     return respond(400, { error: inviteError?.message ?? "Non è stato possibile inviare l'invito." });
   }
 
@@ -117,7 +133,7 @@ Deno.serve(async (req: Request) => {
     if (linkError) {
       await admin.from("memberships").delete().eq("organization_id", organization.id);
       await admin.auth.admin.deleteUser(invited.user.id);
-      await admin.from("organizations").delete().eq("id", organization.id);
+      if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
       return respond(500, { error: "Non è stato possibile associare tutti i fornitori. L'operazione è stata annullata." });
     }
   }
@@ -127,6 +143,7 @@ Deno.serve(async (req: Request) => {
     organization_id: organization.id,
     email,
     type,
+    existing_organization: !createdOrganization,
     message: "Account creato e invito inviato.",
   });
 });
