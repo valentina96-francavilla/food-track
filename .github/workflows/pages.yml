@@ -1,20 +1,15 @@
-name: Deploy FoodTrack to GitHub Pages
+name: Validate FoodTrack
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: pages
+  group: foodtrack-validation
   cancel-in-progress: true
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,20 +20,11 @@ jobs:
           from pathlib import Path
           import re
           html = Path("index.html").read_text(encoding="utf-8")
-          scripts = re.findall(r"<script\b[^>]*>(.*?)</script>", html, flags=re.S | re.I)
+          scripts = re.findall(r"<script\\b[^>]*>(.*?)</script>", html, flags=re.S | re.I)
           assert scripts, "No inline JavaScript found"
           Path("/tmp/foodtrack-inline.js").write_text(scripts[-1], encoding="utf-8")
-          for marker in ("setupNav();", "renderAll()", "function deliveryISO", "submit_foodtrack_order"):
+          for marker in ("setupNav();", "renderAll()", "function deliveryISO", "submit_foodtrack_order", "save_foodtrack_cart"):
               assert marker in html, f"Missing required application marker: {marker}"
           print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters")
           PY
           node --check /tmp/foodtrack-inline.js
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
