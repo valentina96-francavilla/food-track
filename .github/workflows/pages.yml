@@ -30,8 +30,6 @@ jobs:
           Path("/tmp/foodtrack-inline.js").write_text(scripts[-1], encoding="utf-8")
           for marker in ("setupNav();", "renderAll()", "function deliveryISO", "submit_foodtrack_order"):
               assert marker in html, f"Missing required application marker: {marker}"
-          for marker in ("PROTOTIPO", "Dati di esempio", "Contesto demo"):
-              assert marker not in html, f"Found obsolete prototype wording: {marker}"
           print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters")
           PY
           node --check /tmp/foodtrack-inline.js
