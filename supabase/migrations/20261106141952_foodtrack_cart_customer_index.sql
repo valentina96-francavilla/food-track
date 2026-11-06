@@ -1,0 +1,1 @@
+create index if not exists shopping_carts_customer_organization_id_idx on public.shopping_carts(customer_organization_id);
