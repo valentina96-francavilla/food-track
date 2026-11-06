@@ -18,7 +18,15 @@ They cover persistent carts, RLS, cart authorization, Realtime publication, the 
 
 The remote Supabase migration history contains older versions that do not have a matching same-version SQL file in this repository. Some older repository migrations appear to cover similar changes, but their filenames/versions differ. The historical SQL for several remote migrations is not recoverable from the migration-history table alone.
 
-This means the repository is **not yet proven to recreate the entire active database from an empty Supabase project**. Do not run `supabase db reset`, drop/recreate production tables, or treat the active project as disposable.
+This means the repository is **not yet proven to recreate the entire active database from an empty Supabase project**. Remote history entries without a same-version file include:
+
+- `20261026154820`, `20261026154832`, `20261026154853`
+- `20261029112436`, `20261029112531`, `20261029112757`
+- `20261030150602`, `20261030150618`, `20261030150651`
+- `20261031101225`, `20261031194434`, `20261031205113`, `20261031205759`
+- `20261105144306`, `20261105144323`, `20261105144431`, `20261105144546`, `20261105145224`
+
+Some older files may contain equivalent logic under a different filename/version, but equivalence has not been proven line by line. Do not run `supabase db reset`, drop/recreate production tables, or treat the active project as disposable.
 
 Before a disaster-recovery restore or a new environment is created, reconstruct and validate the missing historical migrations from the current schema, functions, triggers, policies and storage configuration. Do not recreate business data as seed data: the owner has confirmed that current organizations, suppliers, products, price lists, links and orders are official records.
 
