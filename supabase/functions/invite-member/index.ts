@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
 
   if (insertMembershipError) {
     await admin.auth.admin.deleteUser(invited.user.id);
-    await admin.from("organizations").delete().eq("id", organization.id);
+    if (createdOrganization) await admin.from("organizations").delete().eq("id", organization.id);
     return respond(500, { error: "Invito generato ma non è stato possibile assegnare il ruolo. L'operazione è stata annullata; controlla la configurazione del database." });
   }
 
