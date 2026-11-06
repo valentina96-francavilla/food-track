@@ -2,6 +2,12 @@
 
 Last checked: 2026-11-06
 
+## Nuove migrazioni account e notifiche
+- `20261106145102_foodtrack_account_controls_and_notifications`
+- `20261106145321_foodtrack_notification_indexes`
+
+Le migrazioni aggiungono il blocco RLS per account disabilitati, controlli sui trigger ordine, notifiche in-app per nuovo ordine/accettazione/promemoria, sincronizzazione Realtime e gli indici delle notifiche. Le organizzazioni, i prodotti, i listini e gli ordini già presenti non sono stati modificati.
+
 ## New changes versioned in both Supabase and GitHub
 
 The following migrations were applied to the active Supabase project and committed with matching versioned filenames:
