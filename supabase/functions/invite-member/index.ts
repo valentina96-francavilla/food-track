@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
   const role = kind;
   const { data: organization, error: orgError } = await admin
     .from("organizations")
-    .insert({ name, kind, email })
+    .insert({ name, kind, email, contact_name: kind === "supplier" ? (String(body.contact ?? "").trim() || null) : null })
     .select("id")
     .single();
   if (orgError || !organization) {
