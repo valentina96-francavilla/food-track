@@ -59,4 +59,18 @@ Le seguenti versioni sono state applicate al progetto remoto:
 
 Il database ora usa `product_formats` e un prezzo distinto per combinazione Negozio/Prodotto/Formato. Le righe carrello, gli ordini e gli ordini ricorrenti memorizzano il formato scelto. I formati già esistenti sono stati migrati come formato predefinito, mantenendo i prezzi e gli ordini già registrati. Le nuove quantità libere si gestiscono creando un formato unitario, ad esempio `Pezzo` con 1 unità, e assegnando il relativo prezzo unitario nel listino.
 
-**Attenzione alla riproducibilità:** le sei versioni sono presenti nella cronologia remota, ma i corrispondenti file SQL individuali non sono ancora stati aggiunti a `supabase/migrations`. La cronologia resta quindi non completamente ricostruibile dal repository. Non eseguire reset o restore da zero prima di aver ricostruito e verificato questi file.
+**Allineamento eseguito il 2026-11-07:** i sei file SQL mancanti per le versioni sopra elencate sono stati aggiunti a `supabase/migrations`. I contenuti sono stati ricostruiti confrontando lo schema e le definizioni delle funzioni attualmente distribuite nel progetto remoto. Sono quindi una ricostruzione verificabile dello stato distribuito, non una copia byte-per-byte degli script originali usati al momento dell'applicazione. Prima di un ripristino completo su un progetto vuoto è ancora necessario validare l'intera catena di migrazioni in un ambiente isolato.
+
+
+## Allineamento repository del 2026-11-07
+
+Aggiunti i sei file mancanti corrispondenti alle versioni remote:
+
+- `20261107091321_foodtrack_multi_product_formats.sql`
+- `20261107091457_foodtrack_format_integrity_and_recurring_default.sql`
+- `20261107091518_foodtrack_product_format_rls_hardening.sql`
+- `20261107091553_foodtrack_recurring_format_pricing.sql`
+- `20261107091609_foodtrack_product_format_sort_order.sql`
+- `20261107091645_foodtrack_order_account_and_supplier_status_checks.sql`
+
+Le funzioni per gli ordini ricorrenti, il carrello e l'invio ordini sono state copiate dalle definizioni correnti del database. Le migrazioni di schema e policy sono state ricostruite dallo schema attivo e dalle policy effettive. Le versioni remote risultano già applicate: non vanno riapplicate al database attivo.
