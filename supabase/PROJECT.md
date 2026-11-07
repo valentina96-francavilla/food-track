@@ -36,3 +36,15 @@
 - `organizations.active` controlla l'accesso degli account Negozio/Fornitore. Una policy RLS restrittiva blocca tutte le tabelle applicative quando un utente è associato a un'organizzazione disabilitata; i trigger impediscono anche le scritture tramite funzioni privilegiate.
 - `public.notifications` contiene notifiche in-app per destinatario. I trigger generano `new_order` per il fornitore coinvolto e l'Admin, `order_accepted` per il Negozio e `delivery_reminder` il giorno prima della consegna per fornitore e Admin. Realtime aggiorna la campanella.
 - `public.generate_foodtrack_delivery_reminders()` è pianificata ogni giorno tramite `pg_cron`.
+
+
+## Formati e listini per formato
+- `public.product_formats` definisce i formati attivi di ciascun prodotto: nome, numero di unità, quantità minima e ordinamento.
+- `customer_product_prices` ha una riga per ogni combinazione Negozio/Prodotto/Formato. Ogni formato può avere prezzo, sconto e promozione indipendenti.
+- `shopping_cart_items`, `order_items` e `recurring_order_items` salvano `format_id`; gli ordini mantengono anche lo snapshot descrittivo del formato.
+- Per vendere quantità libere, configurare un formato unitario, ad esempio `Pezzo`, con 1 unità per formato. Il Negozio inserisce quindi 13 come quantità e il prezzo applicato è quello unitario.
+- Il checkout valida lato database il formato, il prezzo specifico del Negozio, la disponibilità del prodotto/fornitore e la quantità minima. Gli snapshot di prezzo del carrello non sono mai autorevoli.
+- Le righe prezzo già presenti sono state associate al formato predefinito migrato; non sono stati eliminati o modificati ordini o anagrafiche ufficiali.
+
+## Stato account disabilitati
+- `organizations.active` è verificato all'accesso e nelle funzioni di salvataggio carrello e invio ordine. Un'organizzazione disabilitata non può continuare a usare le funzioni operative anche se conserva un vecchio token di sessione.
