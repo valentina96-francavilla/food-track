@@ -1,6 +1,6 @@
 # FoodTrack migration audit
 
-Last checked: 2026-11-06
+Last checked: 2026-11-07
 
 ## Nuove migrazioni account e notifiche
 - `20261106145102_foodtrack_account_controls_and_notifications`
@@ -44,3 +44,19 @@ For each future database change:
 3. Verify the resulting schema, RLS and grants.
 4. Commit the migration file.
 5. Never modify or delete official business records as part of schema deployment.
+
+
+## Formati multipli e prezzi per formato (2026-11-07)
+
+Le seguenti versioni sono state applicate al progetto remoto:
+
+- `20261107091321_foodtrack_multi_product_formats`
+- `20261107091457_foodtrack_format_integrity_and_recurring_default`
+- `20261107091518_foodtrack_product_format_rls_hardening`
+- `20261107091553_foodtrack_recurring_format_pricing`
+- `20261107091609_foodtrack_product_format_sort_order`
+- `20261107091645_foodtrack_order_account_and_supplier_status_checks`
+
+Il database ora usa `product_formats` e un prezzo distinto per combinazione Negozio/Prodotto/Formato. Le righe carrello, gli ordini e gli ordini ricorrenti memorizzano il formato scelto. I formati già esistenti sono stati migrati come formato predefinito, mantenendo i prezzi e gli ordini già registrati. Le nuove quantità libere si gestiscono creando un formato unitario, ad esempio `Pezzo` con 1 unità, e assegnando il relativo prezzo unitario nel listino.
+
+**Attenzione alla riproducibilità:** le sei versioni sono presenti nella cronologia remota, ma i corrispondenti file SQL individuali non sono ancora stati aggiunti a `supabase/migrations`. La cronologia resta quindi non completamente ricostruibile dal repository. Non eseguire reset o restore da zero prima di aver ricostruito e verificato questi file.
