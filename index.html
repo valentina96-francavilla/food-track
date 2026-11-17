@@ -462,7 +462,7 @@ function renderAccount(){document.getElementById('accountInfo').innerHTML='<p><b
 function safeText(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function deliveryISO(o){return typeof o.delivery==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(o.delivery)?o.delivery:''}
 function deliveryLabel(v){if(!v)return 'Data non indicata';const d=new Date(v+'T00:00:00');return d.toLocaleDateString('it-IT',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}
-function deliveryDateShort(v){if(!v)return '—';const d=new Date(v+'T00:00:00');return [String(d.getDate()).padStart(2,'0'),String(d.getMonth()+1).padStart(2,'0'),d.getFullYear()].join('/')}
+function deliveryDateShort(v){if(!v)return '—';const d=new Date(v+'T00:00:00');return [String(d.getDate()).padStart(2,'0'),String(d.getMonth()+1).padStart(2,'0'),String(d.getFullYear()).slice(-2)].join('/')}
 function adminOrderStatusControls(o){const states=['Bozza','Ordine inviato','Confermato','In preparazione','Spedito','In consegna','Consegnato','Annullato'];return '<div class="formrow" style="margin-top:16px;align-items:end"><div class="formfield" style="flex:1;min-width:190px"><label for="adminOrderStatus">Modifica stato ordine</label><select class="field" id="adminOrderStatus">'+states.map(st=>'<option value="'+st+'" '+(o.status===st?'selected':'')+'>'+st+'</option>').join('')+'</select></div><button class="btn primary" onclick="saveAdminOrderStatus(\''+o.id+'\')">Salva stato</button></div>'}
 function orderDetail(id){
  const o=orders.find(x=>x.id===id);if(!o)return toast('Ordine non trovato.');
