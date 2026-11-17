@@ -562,7 +562,7 @@ function editRecurringOccurrence(id){
 }
 
 
-async async function loadFoodTrackNotifications(notifyNew=false){
+async function loadFoodTrackNotifications(notifyNew=false){
  if(!activeSession)return;
  const previous=new Set(notifications.map(n=>n.id));
  const {data,error}=await authClient.from('notifications').select('id,order_id,event_type,title,message,read_at,created_at').order('created_at',{ascending:false}).limit(40);
