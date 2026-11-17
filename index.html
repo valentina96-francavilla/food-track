@@ -474,10 +474,10 @@ function orderDetail(id){
 }
 async function saveAdminOrderStatus(id){if(role!=='admin')return toast('Solo l’amministratore può modificare lo stato.');const value=document.getElementById('adminOrderStatus')?.value;if(!value)return;await setStatus(id,value);orderDetail(id)}
 function homeOrderRows(list,includeSupplier){
- return list.map(o=>'<tr><td><button class="authlink" style="padding:0" onclick="orderDetail(\''+o.id+'\')">'+safeText(o.id)+'</button></td>'+(includeSupplier?'<td>'+safeText(o.supplier)+'</td>':'')+'<td>'+deliveryLabel(deliveryISO(o))+'</td><td>'+statusTag(o.status)+'</td><td><b>'+fmt(o.total)+'</b></td><td><button class="btn small" onclick="orderDetail(\''+o.id+'\')">Dettaglio</button></td></tr>').join('')||'<tr><td colspan="'+(includeSupplier?6:5)+'" class="empty">Nessun ordine presente.</td></tr>';
+ return list.map(o=>'<tr><td><button class="authlink" style="padding:0" onclick="orderDetail(\''+o.id+'\')">'+safeText(o.id)+'</button></td>'+(includeSupplier?'<td>'+safeText(o.supplier)+'</td>':'')+'<td>'+deliveryDateShort(deliveryISO(o))+'</td><td>'+statusTag(o.status)+'</td><td><b>'+fmt(o.total)+'</b></td><td><button class="btn small" onclick="orderDetail(\''+o.id+'\')">Dettaglio</button></td></tr>').join('')||'<tr><td colspan="'+(includeSupplier?6:5)+'" class="empty">Nessun ordine presente.</td></tr>';
 }
 function homeOrderRowsCompact(list){
- return list.map(o=>'<tr class="clickable-order-row" role="button" tabindex="0" onclick="orderDetail(\''+o.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();orderDetail(\''+o.id+'\')}"><td><b>'+safeText(o.id)+'</b></td><td>'+safeText(o.customer)+'</td><td>'+statusTag(o.status)+'</td><td>'+dt(o.created)+'</td><td>'+deliveryLabel(deliveryISO(o))+'</td><td>'+totalPackages(o)+'</td><td><b>'+fmt(o.total)+'</b></td></tr>').join('')||'<tr><td colspan="6" class="empty">Nessun ordine presente.</td></tr>';
+ return list.map(o=>'<tr class="clickable-order-row" role="button" tabindex="0" onclick="orderDetail(\''+o.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();orderDetail(\''+o.id+'\')}"><td><b>'+safeText(o.id)+'</b></td><td>'+safeText(o.customer)+'</td><td>'+statusTag(o.status)+'</td><td>'+dt(o.created)+'</td><td>'+deliveryDateShort(deliveryISO(o))+'</td><td>'+totalPackages(o)+'</td><td><b>'+fmt(o.total)+'</b></td></tr>').join('')||'<tr><td colspan="6" class="empty">Nessun ordine presente.</td></tr>';
 }
 function renderHomeDashboard(){
  const root=document.getElementById('roleDashboard');if(!root)return;
