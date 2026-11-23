@@ -34,6 +34,8 @@ jobs:
           assert "activeSuppliers=suppliers.filter(x=>x.active!==false)" in html
           assert "customerSelect.innerHTML=linked.length?" in html
           assert "suppliers.map(s=>" in html, "Product/customer supplier choices must be database-driven"
+          assert "selectableSuppliers=suppliers.filter(s=>s.active!==false" in html, "New customer links must not default to inactive suppliers"
+          assert "selectableProductSuppliers=role==='fornitore'?suppliers.filter" in html, "Product supplier choices must be role-scoped and active"
           assert html.count("deliveryDateShort(deliveryISO(o))") >= 2, "Order tables must format delivery dates as dd/mm/yy"
           assert "async function fetchFoodTrackRows" in html, "Core data reads must support pagination"
           assert "query.range(offset,offset+pageSize-1)" in html, "Core data reads must not silently stop at the first page"
