@@ -35,6 +35,9 @@ jobs:
           assert "customerSelect.innerHTML=linked.length?" in html
           assert "suppliers.map(s=>" in html, "Product/customer supplier choices must be database-driven"
           assert html.count("deliveryDateShort(deliveryISO(o))") >= 2, "Order tables must format delivery dates as dd/mm/yy"
-          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters and dynamic-data guards passed")
+          assert "async function fetchFoodTrackRows" in html, "Core data reads must support pagination"
+          assert "query.range(offset,offset+pageSize-1)" in html, "Core data reads must not silently stop at the first page"
+          assert ".limit(1000)" not in html, "Fixed 1000-row cap found in core data reads"
+          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters and dynamic-data/pagination guards passed")
           PY
           node --check /tmp/foodtrack-inline.js
