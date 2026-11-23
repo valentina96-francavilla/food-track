@@ -1,6 +1,6 @@
 # FoodTrack migration audit
 
-Last checked: 2026-11-07
+Last checked: 2026-11-23
 
 ## Nuove migrazioni account e notifiche
 - `20261106145102_foodtrack_account_controls_and_notifications`
@@ -74,3 +74,12 @@ Aggiunti i sei file mancanti corrispondenti alle versioni remote:
 - `20261107091645_foodtrack_order_account_and_supplier_status_checks.sql`
 
 Le funzioni per gli ordini ricorrenti, il carrello e l'invio ordini sono state copiate dalle definizioni correnti del database. Le migrazioni di schema e policy sono state ricostruite dallo schema attivo e dalle policy effettive. Le versioni remote risultano già applicate: non vanno riapplicate al database attivo.
+
+
+## Verifica sicurezza e ricorrenze (2026-11-23)
+
+- La migrazione remota `20261123144545_foodtrack_secure_recurring_order_updates` è stata applicata e versionata in `20261123144545_foodtrack_secure_recurring_order_updates.sql`.
+- Il checkout con ricorrenza non è più eseguibile dal ruolo `anon`; resta disponibile a `authenticated`.
+- `update_recurring_order_occurrence` verifica ora anche `private.foodtrack_account_enabled()` prima di modificare un ordine generato.
+- Verifica post-applicazione: `has_function_privilege('anon', ...)` restituisce `false`; la definizione della funzione contiene il controllo dell'account attivo.
+- La migrazione remota `20261123141415_foodtrack_checkout_multi_weekday_recurrence` risulta applicata, ma il relativo file SQL non è ancora presente nel repository. Non ricreare né resettare il database attivo. Prima di ripristinare un ambiente vuoto, ricostruire e verificare anche questa migrazione.
