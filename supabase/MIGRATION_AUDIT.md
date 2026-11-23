@@ -83,3 +83,11 @@ Le funzioni per gli ordini ricorrenti, il carrello e l'invio ordini sono state c
 - `update_recurring_order_occurrence` verifica ora anche `private.foodtrack_account_enabled()` prima di modificare un ordine generato.
 - Verifica post-applicazione: `has_function_privilege('anon', ...)` restituisce `false`; la definizione della funzione contiene il controllo dell'account attivo.
 - La migrazione remota `20261123141415_foodtrack_checkout_multi_weekday_recurrence` risulta applicata, ma il relativo file SQL non è ancora presente nel repository. Non ricreare né resettare il database attivo. Prima di ripristinare un ambiente vuoto, ricostruire e verificare anche questa migrazione.
+
+
+## Immagini prodotto e bucket legacy (2026-11-23)
+
+- Il frontend usa ora il bucket `foodtrack-product-images` e salva i nuovi file sotto `<supplier_organization_id>/products/`, coerentemente con le policy di upload del fornitore e dell'Admin.
+- Il caricamento è differito fino al salvataggio del prodotto, così il percorso usa il fornitore effettivamente selezionato.
+- La migrazione remota `20261123145000_foodtrack_lock_legacy_image_bucket` rimuove INSERT e UPDATE dal vecchio bucket `product-images`. Gli oggetti esistenti non sono stati eliminati e la lettura resta disponibile.
+- Verifica post-migrazione: le policy di scrittura del bucket legacy non sono più presenti; le policy del bucket ufficiale restano attive.
