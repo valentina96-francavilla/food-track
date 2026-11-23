@@ -91,3 +91,11 @@ Le funzioni per gli ordini ricorrenti, il carrello e l'invio ordini sono state c
 - Il caricamento è differito fino al salvataggio del prodotto, così il percorso usa il fornitore effettivamente selezionato.
 - La migrazione remota `20261123145000_foodtrack_lock_legacy_image_bucket` rimuove INSERT e UPDATE dal vecchio bucket `product-images`. Gli oggetti esistenti non sono stati eliminati e la lettura resta disponibile.
 - Verifica post-migrazione: le policy di scrittura del bucket legacy non sono più presenti; le policy del bucket ufficiale restano attive.
+
+
+## Ricorrenze e stato delle organizzazioni (2026-11-23)
+
+- La migrazione remota `20261123145500_foodtrack_pause_recurring_for_inactive_parties` è stata applicata e versionata nel repository.
+- Il generatore automatico salta le ricorrenze quando il Negozio o il Fornitore non sono attivi, oppure quando il collegamento commerciale non è più attivo.
+- La modifica di una consegna ricorrente generata verifica lo stato attivo del Fornitore e il collegamento Negozio-Fornitore.
+- Non sono state create, eliminate o modificate ricorrenze o ordini reali durante la verifica.
