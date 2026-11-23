@@ -25,6 +25,16 @@ jobs:
           Path("/tmp/foodtrack-inline.js").write_text(scripts[-1], encoding="utf-8")
           for marker in ("setupNav();", "renderAll()", "function deliveryISO", "submit_foodtrack_order", "save_foodtrack_cart"):
               assert marker in html, f"Missing required application marker: {marker}"
-          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters")
+
+          # Business entities must come from Supabase, never from fixed demo names.
+          for fixed_value in ("Fiorucci", "Venditti", "Negozio Milano", "Negozio Bari"):
+              assert fixed_value not in html, f"Hard-coded business value found: {fixed_value}"
+          assert '<select id="supplierFilter" class="field"><option value="all">Tutti i fornitori</option></select>' in html
+          assert "supplierSelect.add(new Option(s.name,s.name))" in html
+          assert "activeSuppliers=suppliers.filter(x=>x.active!==false)" in html
+          assert "customerSelect.innerHTML=linked.length?" in html
+          assert "suppliers.map(s=>" in html, "Product/customer supplier choices must be database-driven"
+          assert html.count("deliveryDateShort(deliveryISO(o))") >= 2, "Order tables must format delivery dates as dd/mm/yy"
+          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters and dynamic-data guards passed")
           PY
           node --check /tmp/foodtrack-inline.js
