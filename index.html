@@ -113,7 +113,7 @@ async function loadFoodTrackData(){
   fetchFoodTrackRows('recurring_orders','*',q=>q.order('created_at',{ascending:false}).order('id')),
   fetchFoodTrackRows('recurring_order_items','*',q=>q.order('recurring_order_id').order('id')),
   fetchFoodTrackRows('recurring_order_occurrences','*',q=>q.order('delivery_date',{ascending:true}).order('id')),
-  fetchFoodTrackRows('memberships','organization_id,role',q=>q.eq('role','supplier').order('organization_id'))
+  fetchFoodTrackRows('memberships','organization_id,role,user_id',q=>q.eq('role','supplier').order('organization_id').order('user_id'))
  ]);
  for(const r of [orgRes,linkRes,productRes,formatRes,priceRes,orderRes,itemRes,recurringRes,recurringItemRes,occurrenceRes,membershipRes]) if(r.error) throw r.error;
  const orgs=orgRes.data||[], links=linkRes.data||[], rawProducts=productRes.data||[], rawFormats=formatRes.data||[], rawPrices=priceRes.data||[], supplierMemberships=membershipRes.data||[];
