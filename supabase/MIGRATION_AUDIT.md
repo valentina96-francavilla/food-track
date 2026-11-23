@@ -95,7 +95,7 @@ Le funzioni per gli ordini ricorrenti, il carrello e l'invio ordini sono state c
 
 ## Ricorrenze e stato delle organizzazioni (2026-11-23)
 
-- La migrazione remota `20261123145500_foodtrack_pause_recurring_for_inactive_parties` è stata applicata e versionata nel repository.
+- La migrazione remota `20261123145225_foodtrack_pause_recurring_for_inactive_parties` è stata applicata e versionata nel repository.
 - Il generatore automatico salta le ricorrenze quando il Negozio o il Fornitore non sono attivi, oppure quando il collegamento commerciale non è più attivo.
 - La modifica di una consegna ricorrente generata verifica lo stato attivo del Fornitore e il collegamento Negozio-Fornitore.
 - Non sono state create, eliminate o modificate ricorrenze o ordini reali durante la verifica.
