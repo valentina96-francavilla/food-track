@@ -38,6 +38,9 @@ jobs:
           assert "async function fetchFoodTrackRows" in html, "Core data reads must support pagination"
           assert "query.range(offset,offset+pageSize-1)" in html, "Core data reads must not silently stop at the first page"
           assert ".limit(1000)" not in html, "Fixed 1000-row cap found in core data reads"
-          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters and dynamic-data/pagination guards passed")
+          assert "storage.from('foodtrack-product-images')" in html, "Product uploads must use the secured FoodTrack bucket"
+          assert "supplierId+'/products/'" in html, "Product image paths must be scoped to the owning supplier"
+          assert "storage.from('product-images')" not in html, "Legacy unrestricted product image bucket is still referenced"
+          print(f"HTML smoke checks passed; extracted {len(scripts[-1])} JavaScript characters and dynamic-data/storage guards passed")
           PY
           node --check /tmp/foodtrack-inline.js
